@@ -1,26 +1,30 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
-import { auth } from '../firebase/config';
-import { firebaseAuthService } from '../firebase/auth';
-import { firestoreService } from '../firebase/firestore';
+import { supabase } from '../lib/supabase';
+import { supabaseAuthService } from '../services/supabaseAuthService';
+import { supabaseProfileService } from '../services/supabaseProfileService';
 import { AuthContextType, UserProfile } from '../types/auth';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
+  const [currentUser, setCurrentUser] = useState<any | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Listen for Firebase Auth state changes
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setLoading(true);
-      if (user) {
-        setCurrentUser(user);
+    let isMounted = true;
+
+    // Check initial session
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!isMounted) return;
+      if (session?.user) {
+        setCurrentUser(session.user);
         try {
-          const profile = await firestoreService.getUserProfile(user.uid, user.email || undefined);
+          const profile = await supabaseProfileService.getUserProfile(
+            session.user.id,
+            session.user.email || undefined
+          );
           setUserProfile(profile);
         } catch (err) {
           console.warn('Profile load error:', err);
@@ -33,7 +37,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    // Listen for auth state changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (!isMounted) return;
+      setLoading(true);
+      if (session?.user) {
+        setCurrentUser(session.user);
+        try {
+          const profile = await supabaseProfileService.getUserProfile(
+            session.user.id,
+            session.user.email || undefined
+          );
+          setUserProfile(profile);
+        } catch (err) {
+          console.warn('Profile auth change error:', err);
+          setUserProfile(null);
+        }
+      } else {
+        setCurrentUser(null);
+        setUserProfile(null);
+      }
+      setLoading(false);
+    });
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const login = async (email: string, pass: string): Promise<UserProfile> => {
@@ -41,10 +73,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(true);
 
     try {
-      const user = await firebaseAuthService.signIn(email, pass);
+      const user = await supabaseAuthService.signIn(email, pass);
       setCurrentUser(user);
 
-      const profile = await firestoreService.getUserProfile(user.uid, user.email || email);
+      const profile = await supabaseProfileService.getUserProfile(user.id, user.email || email);
       if (!profile) {
         throw new Error('Your account profile could not be verified. Please contact THEEN administration.');
       }
@@ -67,7 +99,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = async (): Promise<void> => {
     setLoading(true);
     try {
-      await firebaseAuthService.signOutUser();
+      await supabaseAuthService.signOutUser();
       setCurrentUser(null);
       setUserProfile(null);
       setError(null);
@@ -79,7 +111,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const resetPassword = async (email: string): Promise<void> => {
     setError(null);
     try {
-      await firebaseAuthService.sendPasswordReset(email);
+      await supabaseAuthService.sendPasswordReset(email);
     } catch (err: any) {
       setError(err.message || 'Unable to process password reset.');
       throw err;
@@ -88,7 +120,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const refreshProfile = async (): Promise<UserProfile | null> => {
     if (currentUser) {
-      const profile = await firestoreService.getUserProfile(currentUser.uid, currentUser.email || undefined);
+      const profile = await supabaseProfileService.getUserProfile(
+        currentUser.id,
+        currentUser.email || undefined
+      );
       setUserProfile(profile);
       return profile;
     }
