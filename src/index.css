@@ -1,0 +1,81 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    --font-serif: 'Cormorant Garamond', Georgia, serif;
+    --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    --font-display: 'Cinzel', 'Cormorant Garamond', serif;
+    --font-malayalam: 'Noto Sans Malayalam', 'Plus Jakarta Sans', sans-serif;
+    --font-urdu: 'Noto Nastaliq Urdu', 'Amiri', serif;
+    --font-arabic: 'Amiri', 'Traditional Arabic', serif;
+  }
+
+  body {
+    font-family: var(--font-sans);
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(197, 168, 105, 0.3);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(197, 168, 105, 0.6);
+  }
+}
+
+/* Typography helper classes */
+.font-editorial-serif {
+  font-family: var(--font-serif);
+}
+
+.font-brand-display {
+  font-family: var(--font-display);
+}
+
+.font-malayalam {
+  font-family: var(--font-malayalam);
+}
+
+.font-urdu {
+  font-family: var(--font-urdu);
+  line-height: 2.2 !important;
+}
+
+.font-arabic {
+  font-family: var(--font-arabic);
+}
+
+/* Subtle architectural mihrab / arch borders */
+.arch-top {
+  border-top-left-radius: 140px;
+  border-top-right-radius: 140px;
+}
+
+.arch-top-sm {
+  border-top-left-radius: 60px;
+  border-top-right-radius: 60px;
+}
+
+.arch-pointed {
+  clip-path: polygon(50% 0%, 100% 20%, 100% 100%, 0% 100%, 0% 20%);
+}
+
+/* Subtle decorative gold patterned background grid */
+.bg-islamic-grid {
+  background-image: radial-gradient(rgba(197, 168, 105, 0.12) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.bg-islamic-grid-dark {
+  background-image: radial-gradient(rgba(197, 168, 105, 0.08) 1px, transparent 1px);
+  background-size: 24px 24px;
+}

@@ -1,0 +1,6 @@
+{
+  "name": "THEEN – Institute of Qur’an",
+  "description": "An online institute dedicated to excellence in Qur’an and Islamic education through live Hifz, Nazira, Fiqh, and Madrasa programs in Malayalam, English, and Urdu.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

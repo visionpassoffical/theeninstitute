@@ -1,0 +1,145 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions for role & security verification
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isUser(uid) {
+      return isAuthenticated() && request.auth.uid == uid;
+    }
+
+    function getUserProfile() {
+      return get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && 
+        (getUserProfile().role == 'SUPER_ADMIN' || getUserProfile().role == 'ADMIN') &&
+        getUserProfile().isActive == true;
+    }
+
+    function isSuperAdmin() {
+      return isAuthenticated() && 
+        getUserProfile().role == 'SUPER_ADMIN' &&
+        getUserProfile().isActive == true;
+    }
+
+    function isTeacher() {
+      return isAuthenticated() && 
+        getUserProfile().role == 'TEACHER' &&
+        getUserProfile().isActive == true;
+    }
+
+    function getTeacherId() {
+      return getUserProfile().teacherId;
+    }
+
+    // 1. User Profiles Collection
+    match /profiles/{uid} {
+      // User can read own profile; Admin can read all profiles
+      allow read: if isUser(uid) || isAdmin();
+      
+      // Only Admin or Super Admin can create/modify user roles or active status
+      // Teachers & standard users CANNOT mutate their own role, isActive status, or teacherId
+      allow write: if isSuperAdmin() || 
+        (isAdmin() && request.resource.data.role != 'SUPER_ADMIN');
+    }
+
+    // 2. Public Admission Inquiries
+    match /admissions/{admissionId} {
+      // Public visitors can submit admission applications
+      allow create: if request.resource.data.keys().hasAll(['fullName', 'course', 'classType', 'whatsapp', 'email', 'status'])
+                    && request.resource.data.status == 'PENDING';
+      
+      // Only Admins can view or manage student applications
+      allow read, update, delete: if isAdmin();
+    }
+
+    // 3. Public Teacher Applications
+    match /teacherApplications/{appId} {
+      // Public educators can submit teacher registration applications
+      allow create: if request.resource.data.keys().hasAll(['fullName', 'gender', 'qualification', 'whatsapp', 'email', 'status'])
+                    && request.resource.data.status == 'PENDING';
+      
+      // Only Admins can review teacher applications
+      allow read, update, delete: if isAdmin();
+    }
+
+    // 4. Academic Core Collections (Teachers, Students, Batches, Attendance, Progress)
+    match /teachers/{teacherId} {
+      allow read: if isAdmin() || (isTeacher() && getTeacherId() == teacherId);
+      // Teachers can only safely edit their own contact information; cannot change teacherId, status, or role
+      allow update: if isTeacher() && getTeacherId() == teacherId &&
+                    request.resource.data.teacherId == resource.data.teacherId &&
+                    request.resource.data.status == resource.data.status;
+      allow write: if isAdmin();
+    }
+
+    match /students/{studentId} {
+      // Teachers can read ONLY students assigned to them
+      allow read: if isAdmin() || (isTeacher() && resource.data.teacherId == getTeacherId());
+      allow write: if isAdmin();
+    }
+
+    match /batches/{batchId} {
+      allow read: if isAdmin() || (isTeacher() && resource.data.teacherId == getTeacherId());
+      allow write: if isAdmin();
+    }
+
+    // Strict Attendance Security (Sections 15, 30, 31)
+    match /attendance/{attendanceId} {
+      // Teacher can read only their own attendance records
+      allow read: if isAdmin() || (isTeacher() && resource.data.teacherId == getTeacherId());
+      
+      // Teacher can create attendance only for themselves and assigned students
+      allow create: if isAdmin() || 
+        (isTeacher() && 
+         request.resource.data.teacherId == getTeacherId() &&
+         request.resource.data.teacherUid == request.auth.uid &&
+         request.resource.data.keys().hasAll(['teacherId', 'studentId', 'date', 'status', 'submittedAt']));
+      
+      // Teacher can update only their own existing attendance records (e.g. status correction) without altering teacherId or studentId
+      allow update: if isAdmin() || 
+        (isTeacher() && 
+         resource.data.teacherId == getTeacherId() &&
+         request.resource.data.teacherId == resource.data.teacherId &&
+         request.resource.data.studentId == resource.data.studentId);
+      
+      // Teachers cannot delete attendance records freely
+      allow delete: if isAdmin();
+    }
+
+    // Student Progress Records (Sections 17, 18)
+    match /studentProgress/{progressId} {
+      allow read: if isAdmin() || (isTeacher() && resource.data.teacherId == getTeacherId());
+      allow create, update: if isAdmin() || 
+        (isTeacher() && request.resource.data.teacherId == getTeacherId());
+      allow delete: if isAdmin();
+    }
+
+    // 5. Sensitive Financial Collections (Payments, Salary Records)
+    // CRITICAL: NEVER accessible to public or teachers (Section 27)
+    match /payments/{paymentId} {
+      allow read, write: if isSuperAdmin() || (isAdmin() && getUserProfile().permissions.finance == true);
+    }
+
+    match /salaryRecords/{recordId} {
+      allow read, write: if isSuperAdmin() || (isAdmin() && getUserProfile().permissions.finance == true);
+    }
+
+    // 6. System Settings & Email Audit Logs
+    match /settings/{settingId} {
+      allow read: if isAdmin();
+      allow write: if isSuperAdmin();
+    }
+
+    match /emailLogs/{logId} {
+      allow read: if isAdmin() || (isTeacher() && resource.data.teacherId == getTeacherId());
+      allow create: if isAuthenticated();
+      allow update, delete: if isAdmin();
+    }
+  }
+}
