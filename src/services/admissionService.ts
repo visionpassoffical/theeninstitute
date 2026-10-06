@@ -2,7 +2,7 @@ import { AdmissionApplication } from '../types';
 import { supabase } from '../lib/supabase';
 
 export const admissionService = {
-  // Submit new student admission application directly to Supabase public.admissions table
+  // Submit new student admission application directly to Supabase public.admissions table (pure insert without requiring public select permission)
   submitApplication: async (
     data: Omit<AdmissionApplication, 'applicationId' | 'status' | 'submittedAt'>
   ): Promise<AdmissionApplication> => {
@@ -37,11 +37,9 @@ export const admissionService = {
       status: 'PENDING',
     };
 
-    const { data: insertedData, error } = await supabase
+    const { error } = await supabase
       .from('admissions')
-      .insert(insertPayload)
-      .select()
-      .single();
+      .insert(insertPayload);
 
     if (error) {
       console.error('Supabase Admissions insertion error:', error);
@@ -50,9 +48,9 @@ export const admissionService = {
 
     const newApplication: AdmissionApplication = {
       ...data,
-      applicationId: insertedData?.application_id || applicationId,
-      status: insertedData?.status || 'PENDING',
-      submittedAt: insertedData?.created_at || submittedAt,
+      applicationId,
+      status: 'PENDING',
+      submittedAt,
     };
 
     return newApplication;

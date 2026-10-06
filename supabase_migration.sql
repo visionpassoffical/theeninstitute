@@ -330,11 +330,16 @@ CREATE POLICY "Admins can insert/update profiles" ON public.profiles
 -- Admissions Policies
 DROP POLICY IF EXISTS "Public can submit admissions" ON public.admissions;
 CREATE POLICY "Public can submit admissions" ON public.admissions
-    FOR INSERT WITH CHECK (status = 'PENDING');
+    FOR INSERT
+    TO anon, authenticated
+    WITH CHECK (status = 'PENDING');
 
 DROP POLICY IF EXISTS "Admins can manage admissions" ON public.admissions;
 CREATE POLICY "Admins can manage admissions" ON public.admissions
-    FOR ALL USING (public.is_admin());
+    FOR ALL
+    TO authenticated
+    USING (public.is_admin())
+    With CHECK (public.is_admin());
 
 -- Teacher Applications Policies
 DROP POLICY IF EXISTS "Public can submit teacher applications" ON public.teacher_applications;
