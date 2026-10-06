@@ -1,9 +1,9 @@
 -- ============================================================================
--- THEEN - INSTITUTE OF QUR'AN : SUPABASE PRODUCTION MIGRATION SCRIPT (SECURED)
+-- THEEN - INSTITUTE OF QUR'AN : SUPABASE PRODUCTION MIGRATION SCRIPT (SECURED & CORRECTED)
 -- ============================================================================
 -- This script sets up the complete relational PostgreSQL schema, foreign keys,
 -- constraints, database-level triggers, secure functions with fixed search_path,
--- and strict Row Level Security (RLS) policies.
+-- and strict Row Level Security (RLS) policies using proper SQL boolean operators.
 -- Fully idempotent and safe to run multiple times on a fresh or existing Supabase project.
 -- ============================================================================
 
@@ -315,7 +315,7 @@ ALTER TABLE public.settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.email_logs ENABLE ROW LEVEL SECURITY;
 
 -- ============================================================================
--- RLS POLICIES (IDEMPOTENT & SECURE)
+-- RLS POLICIES (IDEMPOTENT & SECURE — USING PROPER SQL BOOLEAN OR/AND)
 -- ============================================================================
 
 -- Profiles Policies
@@ -434,7 +434,7 @@ CREATE POLICY "Admin only settings" ON public.settings
 -- Email Logs Policies (Admin Only Insertion to prevent spoofing)
 DROP POLICY IF EXISTS "Admins and teachers read email logs" ON public.email_logs;
 CREATE POLICY "Admins and teachers read email logs" ON public.email_logs
-    FOR SELECT USING (public.is_admin() || (public.is_teacher() AND teacher_id = public.get_teacher_id()));
+    FOR SELECT USING (public.is_admin() OR (public.is_teacher() AND teacher_id = public.get_teacher_id()));
 
 DROP POLICY IF EXISTS "Admins manage email logs" ON public.email_logs;
 CREATE POLICY "Admins manage email logs" ON public.email_logs
