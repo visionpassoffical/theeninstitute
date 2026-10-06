@@ -20,6 +20,7 @@ import {
 export const AdmissionsPage: React.FC = () => {
   const { language, t, isRtl, fontClass } = useLanguage();
   const { navigate, routeState } = useRouter();
+  const [submitError, setSubmitError] = React.useState<string | null>(null);
 
   const validationMessages = t.admissions.validation as Record<string, string>;
   const schema = createAdmissionSchema(validationMessages);
@@ -31,6 +32,7 @@ export const AdmissionsPage: React.FC = () => {
     handleSubmit,
     watch,
     setValue,
+    clearErrors,
     formState: { errors, isSubmitting },
   } = useForm<AdmissionFormValues>({
     resolver: zodResolver(schema),
@@ -85,7 +87,18 @@ export const AdmissionsPage: React.FC = () => {
     }
   }, [selectedDob, setValue]);
 
+  // When adult checkbox is checked, clear guardian values and validation errors immediately
+  useEffect(() => {
+    if (isApplyingForSelf) {
+      setValue('guardianName', '');
+      setValue('guardianWhatsapp', '');
+      setValue('guardianRelationship', '');
+      clearErrors(['guardianName', 'guardianWhatsapp', 'guardianRelationship']);
+    }
+  }, [isApplyingForSelf, setValue, clearErrors]);
+
   const onSubmit = async (data: AdmissionFormValues) => {
+    setSubmitError(null);
     try {
       const savedApplication = await admissionService.submitApplication({
         fullName: data.fullName,
@@ -112,9 +125,15 @@ export const AdmissionsPage: React.FC = () => {
       });
 
       navigate('/admissions/success', { application: savedApplication });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Submission error:', error);
+      setSubmitError(error?.message || 'Failed to submit admission application. Please try again.');
     }
+  };
+
+  const onInvalid = (errors: any) => {
+    console.warn('Admission form validation failed:', errors);
+    setSubmitError('Please check all required fields and correct the highlighted errors before submitting.');
   };
 
   return (
@@ -177,7 +196,7 @@ export const AdmissionsPage: React.FC = () => {
 
         {/* Main Admission Form Card */}
         <div className="bg-white dark:bg-[#0B172B] rounded-2xl border border-[#E8E2D5] dark:border-[#1F3354] p-6 sm:p-10 shadow-lg text-start">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
+          <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-10">
             {/* ======================================================
                 SECTION A — STUDENT INFORMATION
             ====================================================== */}
@@ -792,6 +811,12 @@ export const AdmissionsPage: React.FC = () => {
                   {t.admissions.fields.privacyNotice}
                 </p>
               </div>
+
+              {submitError && (
+                <div className="p-4 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-red-600 dark:text-red-400 text-xs font-medium">
+                  {submitError}
+                </div>
+              )}
 
               {/* Submit Button */}
               <div className="pt-4 flex justify-end">

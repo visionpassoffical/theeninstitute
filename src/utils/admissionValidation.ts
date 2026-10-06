@@ -67,8 +67,8 @@ export const createAdmissionSchema = (validationMessages: Record<string, string>
       }),
     })
     .superRefine((data, ctx) => {
-      // If student is minor (age < 18) or isApplyingForSelf is false, require guardian information
-      if (!data.isApplyingForSelf || data.age < 18) {
+      // If isApplyingForSelf is false, require guardian information. If true, guardian fields are optional.
+      if (!data.isApplyingForSelf) {
         if (!data.guardianName || data.guardianName.trim().length < 2) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
