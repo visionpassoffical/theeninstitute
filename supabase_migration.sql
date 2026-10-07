@@ -1,5 +1,5 @@
 -- ============================================================================
--- THEEN - INSTITUTE OF QUR'AN : SUPABASE PRODUCTION MIGRATION SCRIPT (SECURED & RESILIENT ADMIN)
+-- THEEN - INSTITUTE OF QUR'AN : SUPABASE PRODUCTION MIGRATION SCRIPT (RECURSION-FREE RLS)
 -- ============================================================================
 
 -- 1. PROFILES TABLE (Linked to Supabase Auth auth.users)
@@ -215,7 +215,7 @@ CREATE INDEX IF NOT EXISTS idx_admissions_status ON public.admissions(status);
 CREATE INDEX IF NOT EXISTS idx_teacher_applications_status ON public.teacher_applications(status);
 
 -- ============================================================================
--- DATABASE SECURITY TRIGGERS & FUNCTIONS (WITH FIXED SEARCH_PATH)
+-- DATABASE SECURITY TRIGGERS & FUNCTIONS (RECURSION-FREE)
 -- ============================================================================
 
 -- Enforce Group Class Maximum Capacity of 5 Students at Database Level
@@ -243,17 +243,17 @@ CREATE TRIGGER enforce_batch_capacity_trigger
     FOR EACH ROW
     EXECUTE FUNCTION public.check_batch_capacity();
 
--- Helper function to check if current user is admin (with fallback for primary admin email)
+-- Helper function to check if current user is admin (recursion-safe)
 CREATE OR REPLACE FUNCTION public.is_admin()
 RETURNS BOOLEAN AS $$
 BEGIN
   RETURN (
     auth.jwt() ->> 'email' = 'theeninstitute@gmail.com' OR
     EXISTS (
-      SELECT 1 FROM public.profiles
-      WHERE id = auth.uid()
-        AND role IN ('SUPER_ADMIN', 'ADMIN')
-        AND is_active = true
+      SELECT 1 FROM public.profiles p
+      WHERE p.id = auth.uid()
+        AND p.role IN ('SUPER_ADMIN', 'ADMIN')
+        AND p.is_active = true
     )
   );
 END;
@@ -266,10 +266,10 @@ BEGIN
   RETURN (
     auth.jwt() ->> 'email' = 'theeninstitute@gmail.com' OR
     EXISTS (
-      SELECT 1 FROM public.profiles
-      WHERE id = auth.uid()
-        AND role = 'SUPER_ADMIN'
-        AND is_active = true
+      SELECT 1 FROM public.profiles p
+      WHERE p.id = auth.uid()
+        AND p.role = 'SUPER_ADMIN'
+        AND p.is_active = true
     )
   );
 END;
@@ -280,10 +280,10 @@ CREATE OR REPLACE FUNCTION public.is_teacher()
 RETURNS BOOLEAN AS $$
 BEGIN
   RETURN EXISTS (
-    SELECT 1 FROM public.profiles
-    WHERE id = auth.uid()
-      AND role = 'TEACHER'
-      AND is_active = true
+    SELECT 1 FROM public.profiles p
+    WHERE p.id = auth.uid()
+      AND p.role = 'TEACHER'
+      AND p.is_active = true
   );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
@@ -316,17 +316,17 @@ ALTER TABLE public.settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.email_logs ENABLE ROW LEVEL SECURITY;
 
 -- ============================================================================
--- RLS POLICIES (IDEMPOTENT & SECURE)
+-- RLS POLICIES (RECURSION-FREE PROFILES POLICY)
 -- ============================================================================
 
--- Profiles Policies
+-- Profiles Policies (Direct JWT/UID check to prevent infinite recursion loop)
 DROP POLICY IF EXISTS "Users can read own profile or admin reads all" ON public.profiles;
 CREATE POLICY "Users can read own profile or admin reads all" ON public.profiles
-    FOR SELECT USING (id = auth.uid() OR public.is_admin());
+    FOR SELECT USING (id = auth.uid() OR auth.jwt() ->> 'email' = 'theeninstitute@gmail.com');
 
 DROP POLICY IF EXISTS "Admins can insert/update profiles" ON public.profiles;
 CREATE POLICY "Admins can insert/update profiles" ON public.profiles
-    FOR ALL USING (public.is_admin());
+    FOR ALL USING (id = auth.uid() OR auth.jwt() ->> 'email' = 'theeninstitute@gmail.com');
 
 -- Admissions Policies
 DROP POLICY IF EXISTS "Public can submit admissions" ON public.admissions;
@@ -338,7 +338,7 @@ CREATE POLICY "Public can submit admissions" ON public.admissions
 DROP POLICY IF EXISTS "Admins can manage admissions" ON public.admissions;
 CREATE POLICY "Admins can manage admissions" ON public.admissions
     FOR ALL
-    TO anon, authenticated
+    TO authenticated
     USING (public.is_admin())
     WITH CHECK (public.is_admin());
 
@@ -363,7 +363,8 @@ CREATE POLICY "Admins manage students, teachers view assigned" ON public.student
 
 DROP POLICY IF EXISTS "Admins can write students" ON public.students;
 CREATE POLICY "Admins can write students" ON public.students
-    FOR ALL USING (public.is_admin());
+    FOR ALL USING (public.is_admin())
+    WITH CHECK (public.is_admin());
 
 -- Teachers Policies
 DROP POLICY IF EXISTS "Admins manage teachers, teacher views own" ON public.teachers;
@@ -431,18 +432,18 @@ CREATE POLICY "Admins manage progress, teacher manages assigned" ON public.stude
 -- Finance Policies (Payments & Salary Records) - Admin Only
 DROP POLICY IF EXISTS "Admin only payments" ON public.payments;
 CREATE POLICY "Admin only payments" ON public.payments
-    FOR ALL USING (public.is_super_admin() OR public.is_admin());
+    FOR ALL USING (public.is_super_admin() || public.is_admin());
 
 DROP POLICY IF EXISTS "Admin only salary records" ON public.salary_records;
 CREATE POLICY "Admin only salary records" ON public.salary_records
-    FOR ALL USING (public.is_super_admin() OR public.is_admin());
+    FOR ALL USING (public.is_super_admin() || public.is_admin());
 
 -- Settings Policies
 DROP POLICY IF EXISTS "Admin only settings" ON public.settings;
 CREATE POLICY "Admin only settings" ON public.settings
     FOR ALL USING (public.is_admin());
 
--- Email Logs Policies (Admin Only Insertion to prevent spoofing)
+-- Email Logs Policies
 DROP POLICY IF EXISTS "Admins and teachers read email logs" ON public.email_logs;
 CREATE POLICY "Admins and teachers read email logs" ON public.email_logs
     FOR SELECT USING (public.is_admin() OR (public.is_teacher() AND teacher_id = public.get_teacher_id()));
