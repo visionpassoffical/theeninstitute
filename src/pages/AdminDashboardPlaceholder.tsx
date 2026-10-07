@@ -26,6 +26,10 @@ import {
   Edit,
   AlertCircle,
   Loader2,
+  Phone,
+  Mail,
+  Calendar,
+  Globe,
 } from 'lucide-react';
 
 export const AdminDashboardPlaceholder: React.FC = () => {
@@ -168,6 +172,14 @@ export const AdminDashboardPlaceholder: React.FC = () => {
     }
   };
 
+  const filteredAdmissions = admissions.filter((app) => {
+    const matchesSearch =
+      app.fullName.toLowerCase().includes(admissionSearch.toLowerCase()) ||
+      app.email.toLowerCase().includes(admissionSearch.toLowerCase());
+    const matchesFilter = admissionFilter === 'ALL' || app.status === admissionFilter;
+    return matchesSearch && matchesFilter;
+  });
+
   return (
     <div className="pt-28 pb-24 bg-[#FBF9F5] dark:bg-[#060D1A] min-h-screen text-[#071A3D] dark:text-[#F3EFE6] transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
@@ -185,10 +197,10 @@ export const AdminDashboardPlaceholder: React.FC = () => {
             </h1>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-start">
             <button
               onClick={() => navigate('/')}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium text-[#5E6D84] dark:text-[#9EADC4] hover:text-[#071A3D] dark:hover:text-white bg-white dark:bg-[#0B172B] border border-[#E8E2D5] dark:border-[#1F3354] rounded-md transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-[#5E6D84] dark:text-[#9EADC4] hover:text-[#071A3D] dark:hover:text-white bg-white dark:bg-[#0B172B] border border-[#E8E2D5] dark:border-[#1F3354] rounded-md transition-colors cursor-pointer"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>Public Website</span>
@@ -196,7 +208,7 @@ export const AdminDashboardPlaceholder: React.FC = () => {
 
             <button
               onClick={handleSignOut}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold uppercase tracking-wider text-white bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800 rounded-md transition-colors cursor-pointer shadow-2xs"
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold uppercase tracking-wider text-white bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800 rounded-md transition-colors cursor-pointer shadow-2xs"
             >
               <LogOut className="w-3.5 h-3.5" />
               <span>Sign Out</span>
@@ -254,36 +266,36 @@ export const AdminDashboardPlaceholder: React.FC = () => {
         {!loading && activeTab === 'overview' && (
           <div className="space-y-8">
             {/* Stat Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="p-6 rounded-2xl bg-white dark:bg-[#0B172B] border border-[#E8E2D5] dark:border-[#1F3354] shadow-sm text-start space-y-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-[#5E6D84] dark:text-[#9EADC4]">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#0B172B] border border-[#E8E2D5] dark:border-[#1F3354] shadow-sm text-start space-y-2">
+                <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-[#5E6D84] dark:text-[#9EADC4]">
                   Pending Admissions
                 </span>
-                <div className="text-3xl font-bold text-[#071A3D] dark:text-[#F3EFE6] font-editorial-serif">
+                <div className="text-2xl sm:text-3xl font-bold text-[#071A3D] dark:text-[#F3EFE6] font-editorial-serif">
                   {stats.pendingAdmissions}
                 </div>
               </div>
-              <div className="p-6 rounded-2xl bg-white dark:bg-[#0B172B] border border-[#E8E2D5] dark:border-[#1F3354] shadow-sm text-start space-y-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-[#5E6D84] dark:text-[#9EADC4]">
+              <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#0B172B] border border-[#E8E2D5] dark:border-[#1F3354] shadow-sm text-start space-y-2">
+                <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-[#5E6D84] dark:text-[#9EADC4]">
                   Active Students
                 </span>
-                <div className="text-3xl font-bold text-[#071A3D] dark:text-[#F3EFE6] font-editorial-serif">
+                <div className="text-2xl sm:text-3xl font-bold text-[#071A3D] dark:text-[#F3EFE6] font-editorial-serif">
                   {stats.activeStudents}
                 </div>
               </div>
-              <div className="p-6 rounded-2xl bg-white dark:bg-[#0B172B] border border-[#E8E2D5] dark:border-[#1F3354] shadow-sm text-start space-y-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-[#5E6D84] dark:text-[#9EADC4]">
+              <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#0B172B] border border-[#E8E2D5] dark:border-[#1F3354] shadow-sm text-start space-y-2">
+                <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-[#5E6D84] dark:text-[#9EADC4]">
                   Active Teachers
                 </span>
-                <div className="text-3xl font-bold text-[#071A3D] dark:text-[#F3EFE6] font-editorial-serif">
+                <div className="text-2xl sm:text-3xl font-bold text-[#071A3D] dark:text-[#F3EFE6] font-editorial-serif">
                   {stats.activeTeachers}
                 </div>
               </div>
-              <div className="p-6 rounded-2xl bg-white dark:bg-[#0B172B] border border-[#E8E2D5] dark:border-[#1F3354] shadow-sm text-start space-y-2">
-                <span className="text-xs font-bold uppercase tracking-wider text-[#5E6D84] dark:text-[#9EADC4]">
+              <div className="p-5 sm:p-6 rounded-2xl bg-white dark:bg-[#0B172B] border border-[#E8E2D5] dark:border-[#1F3354] shadow-sm text-start space-y-2">
+                <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-[#5E6D84] dark:text-[#9EADC4]">
                   Active Batches
                 </span>
-                <div className="text-3xl font-bold text-[#071A3D] dark:text-[#F3EFE6] font-editorial-serif">
+                <div className="text-2xl sm:text-3xl font-bold text-[#071A3D] dark:text-[#F3EFE6] font-editorial-serif">
                   {stats.activeBatches}
                 </div>
               </div>
@@ -317,7 +329,8 @@ export const AdminDashboardPlaceholder: React.FC = () => {
 
         {!loading && activeTab === 'admissions' && (
           <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            {/* Search & Filter */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
               <div className="relative w-full sm:w-72">
                 <Search className="absolute left-3 top-3 w-4 h-4 text-[#5E6D84]" />
                 <input
@@ -325,17 +338,17 @@ export const AdminDashboardPlaceholder: React.FC = () => {
                   placeholder="Search applicant name or email..."
                   value={admissionSearch}
                   onChange={(e) => setAdmissionSearch(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 text-xs bg-white dark:bg-[#0B172B] border border-[#E8E2D5] dark:border-[#1F3354] rounded-md focus:ring-1 focus:ring-[#C5A869] dark:text-white"
+                  className="w-full pl-9 pr-4 py-2.5 text-xs bg-white dark:bg-[#0B172B] border border-[#E8E2D5] dark:border-[#1F3354] rounded-md focus:ring-1 focus:ring-[#C5A869] dark:text-white"
                 />
               </div>
 
-              <div className="flex items-center gap-2 w-full sm:w-auto">
-                <Filter className="w-4 h-4 text-[#5E6D84]" />
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+                <Filter className="w-4 h-4 text-[#5E6D84] shrink-0" />
                 {['ALL', 'PENDING', 'APPROVED', 'REJECTED'].map((st) => (
                   <button
                     key={st}
                     onClick={() => setAdmissionFilter(st)}
-                    className={`px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider rounded-md transition-colors cursor-pointer ${
+                    className={`px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider rounded-md transition-colors cursor-pointer whitespace-nowrap ${
                       admissionFilter === st
                         ? 'bg-[#071A3D] text-white dark:bg-[#C5A869] dark:text-[#060D1A]'
                         : 'bg-white dark:bg-[#0B172B] border border-[#E8E2D5] dark:border-[#1F3354] text-[#5E6D84] dark:text-[#9EADC4]'
@@ -347,7 +360,73 @@ export const AdminDashboardPlaceholder: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-white dark:bg-[#0B172B] rounded-xl border border-[#E8E2D5] dark:border-[#1F3354] overflow-hidden shadow-sm">
+            {/* Mobile Cards View (< md) & Desktop Table View (>= md) */}
+            <div className="block md:hidden space-y-4">
+              {filteredAdmissions.map((app) => (
+                <div key={app.applicationId} className="bg-white dark:bg-[#0B172B] rounded-xl border border-[#E8E2D5] dark:border-[#1F3354] p-4 shadow-sm text-start space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-mono font-bold text-[#8A7038] dark:text-[#D4BC82]">
+                      {app.applicationId}
+                    </span>
+                    <span
+                      className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                        app.status === 'PENDING'
+                          ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-400'
+                          : app.status === 'APPROVED'
+                          ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-400'
+                          : 'bg-red-100 text-red-800 dark:bg-red-950/60 dark:text-red-400'
+                      }`}
+                    >
+                      {app.status}
+                    </span>
+                  </div>
+
+                  <div>
+                    <h3 className="text-sm font-bold text-[#071A3D] dark:text-[#F3EFE6]">{app.fullName}</h3>
+                    <p className="text-xs text-[#5E6D84] dark:text-[#9EADC4]">{app.email}</p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs text-[#41536E] dark:text-[#C5D2E5] pt-1 border-t border-[#E8E2D5] dark:border-[#1F3354]">
+                    <div><strong>Course:</strong> {app.course.toUpperCase()}</div>
+                    <div><strong>Format:</strong> {app.classType.toUpperCase()}</div>
+                    <div><strong>Lang:</strong> {app.classLanguage.toUpperCase()}</div>
+                    <div><strong>Phone:</strong> {app.whatsapp}</div>
+                  </div>
+
+                  <div className="pt-2 flex items-center justify-end gap-2 border-t border-[#E8E2D5] dark:border-[#1F3354]">
+                    <button
+                      onClick={() => setSelectedAdmission(app)}
+                      className="px-3 py-1.5 text-xs font-semibold bg-white dark:bg-[#060D1A] border border-[#E8E2D5] dark:border-[#1F3354] rounded-md cursor-pointer"
+                    >
+                      View Details
+                    </button>
+                    {app.status === 'PENDING' && (
+                      <>
+                        <button
+                          onClick={() => handleAdmissionAction(app.applicationId, 'APPROVED')}
+                          className="px-3 py-1.5 text-xs font-semibold bg-emerald-600 text-white rounded-md hover:bg-emerald-700 cursor-pointer"
+                        >
+                          Approve
+                        </button>
+                        <button
+                          onClick={() => handleAdmissionAction(app.applicationId, 'REJECTED')}
+                          className="px-3 py-1.5 text-xs font-semibold bg-red-600 text-white rounded-md hover:bg-red-700 cursor-pointer"
+                        >
+                          Reject
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              ))}
+              {filteredAdmissions.length === 0 && (
+                <div className="py-12 text-center text-xs text-[#5E6D84]">
+                  No admission applications found.
+                </div>
+              )}
+            </div>
+
+            <div className="hidden md:block bg-white dark:bg-[#0B172B] rounded-xl border border-[#E8E2D5] dark:border-[#1F3354] overflow-hidden shadow-sm">
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <thead className="bg-[#FBF9F5] dark:bg-[#060D1A] text-[#5E6D84] dark:text-[#9EADC4] uppercase tracking-wider border-b border-[#E8E2D5] dark:border-[#1F3354]">
@@ -362,68 +441,60 @@ export const AdminDashboardPlaceholder: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#E8E2D5] dark:divide-[#1F3354]">
-                    {admissions
-                      .filter((app) => {
-                        const matchesSearch =
-                          app.fullName.toLowerCase().includes(admissionSearch.toLowerCase()) ||
-                          app.email.toLowerCase().includes(admissionSearch.toLowerCase());
-                        const matchesFilter = admissionFilter === 'ALL' || app.status === admissionFilter;
-                        return matchesSearch && matchesFilter;
-                      })
-                      .map((app) => (
-                        <tr key={app.applicationId} className="hover:bg-[#FBF9F5]/50 dark:hover:bg-[#060D1A]/50 transition-colors">
-                          <td className="px-4 py-3 font-mono font-semibold text-[#8A7038] dark:text-[#D4BC82]">
-                            {app.applicationId}
-                          </td>
-                          <td className="px-4 py-3 font-bold text-[#071A3D] dark:text-[#F3EFE6]">
-                            {app.fullName}
-                          </td>
-                          <td className="px-4 py-3 uppercase font-medium">{app.course}</td>
-                          <td className="px-4 py-3 uppercase font-medium">{app.classType}</td>
-                          <td className="px-4 py-3 text-[#5E6D84] dark:text-[#9EADC4]">
-                            <div>{app.whatsapp}</div>
-                            <div className="text-[11px]">{app.email}</div>
-                          </td>
-                          <td className="px-4 py-3">
-                            <span
-                              className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                                app.status === 'PENDING'
-                                  ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-400'
-                                  : app.status === 'APPROVED'
-                                  ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-400'
-                                  : 'bg-red-100 text-red-800 dark:bg-red-950/60 dark:text-red-400'
-                              }`}
-                            >
-                              {app.status}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-end space-x-2">
-                            <button
-                              onClick={() => setSelectedAdmission(app)}
-                              className="px-2.5 py-1 text-[11px] font-semibold bg-white dark:bg-[#060D1A] border border-[#E8E2D5] dark:border-[#1F3354] rounded hover:border-[#C5A869] transition-colors cursor-pointer"
-                            >
-                              View
-                            </button>
-                            {app.status === 'PENDING' && (
-                              <>
-                                <button
-                                  onClick={() => handleAdmissionAction(app.applicationId, 'APPROVED')}
-                                  className="px-2.5 py-1 text-[11px] font-semibold bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors cursor-pointer"
-                                >
-                                  Approve
-                                </button>
-                                <button
-                                  onClick={() => handleAdmissionAction(app.applicationId, 'REJECTED')}
-                                  className="px-2.5 py-1 text-[11px] font-semibold bg-red-600 text-white rounded hover:bg-red-700 transition-colors cursor-pointer"
-                                >
-                                  Reject
-                                </button>
-                              </>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    {admissions.length === 0 && (
+                    {filteredAdmissions.map((app) => (
+                      <tr key={app.applicationId} className="hover:bg-[#FBF9F5]/50 dark:hover:bg-[#060D1A]/50 transition-colors">
+                        <td className="px-4 py-3 font-mono font-semibold text-[#8A7038] dark:text-[#D4BC82]">
+                          {app.applicationId}
+                        </td>
+                        <td className="px-4 py-3 font-bold text-[#071A3D] dark:text-[#F3EFE6]">
+                          {app.fullName}
+                        </td>
+                        <td className="px-4 py-3 uppercase font-medium">{app.course}</td>
+                        <td className="px-4 py-3 uppercase font-medium">{app.classType}</td>
+                        <td className="px-4 py-3 text-[#5E6D84] dark:text-[#9EADC4]">
+                          <div>{app.whatsapp}</div>
+                          <div className="text-[11px]">{app.email}</div>
+                        </td>
+                        <td className="px-4 py-3">
+                          <span
+                            className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                              app.status === 'PENDING'
+                                ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-400'
+                                : app.status === 'APPROVED'
+                                ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-400'
+                                : 'bg-red-100 text-red-800 dark:bg-red-950/60 dark:text-red-400'
+                            }`}
+                          >
+                            {app.status}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-end space-x-2">
+                          <button
+                            onClick={() => setSelectedAdmission(app)}
+                            className="px-2.5 py-1 text-[11px] font-semibold bg-white dark:bg-[#060D1A] border border-[#E8E2D5] dark:border-[#1F3354] rounded hover:border-[#C5A869] transition-colors cursor-pointer"
+                          >
+                            View
+                          </button>
+                          {app.status === 'PENDING' && (
+                            <>
+                              <button
+                                onClick={() => handleAdmissionAction(app.applicationId, 'APPROVED')}
+                                className="px-2.5 py-1 text-[11px] font-semibold bg-emerald-600 text-white rounded hover:bg-emerald-700 transition-colors cursor-pointer"
+                              >
+                                Approve
+                              </button>
+                              <button
+                                onClick={() => handleAdmissionAction(app.applicationId, 'REJECTED')}
+                                className="px-2.5 py-1 text-[11px] font-semibold bg-red-600 text-white rounded hover:bg-red-700 transition-colors cursor-pointer"
+                              >
+                                Reject
+                              </button>
+                            </>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                    {filteredAdmissions.length === 0 && (
                       <tr>
                         <td colSpan={7} className="px-4 py-8 text-center text-[#5E6D84]">
                           No admission applications found.
@@ -439,7 +510,7 @@ export const AdminDashboardPlaceholder: React.FC = () => {
 
         {!loading && activeTab === 'teachers' && (
           <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
               <div className="relative w-full sm:w-72">
                 <Search className="absolute left-3 top-3 w-4 h-4 text-[#5E6D84]" />
                 <input
@@ -447,7 +518,7 @@ export const AdminDashboardPlaceholder: React.FC = () => {
                   placeholder="Search teachers..."
                   value={teacherSearch}
                   onChange={(e) => setTeacherSearch(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 text-xs bg-white dark:bg-[#0B172B] border border-[#E8E2D5] dark:border-[#1F3354] rounded-md focus:ring-1 focus:ring-[#C5A869] dark:text-white"
+                  className="w-full pl-9 pr-4 py-2.5 text-xs bg-white dark:bg-[#0B172B] border border-[#E8E2D5] dark:border-[#1F3354] rounded-md focus:ring-1 focus:ring-[#C5A869] dark:text-white"
                 />
               </div>
 
@@ -470,7 +541,7 @@ export const AdminDashboardPlaceholder: React.FC = () => {
                   });
                   setTeacherModalOpen(true);
                 }}
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold uppercase tracking-wider bg-[#071A3D] text-white dark:bg-[#C5A869] dark:text-[#060D1A] rounded-md transition-colors cursor-pointer"
+                className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider bg-[#071A3D] text-white dark:bg-[#C5A869] dark:text-[#060D1A] rounded-md transition-colors cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
                 <span>Add Teacher</span>
@@ -529,7 +600,7 @@ export const AdminDashboardPlaceholder: React.FC = () => {
 
         {!loading && activeTab === 'students' && (
           <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
               <div className="relative w-full sm:w-72">
                 <Search className="absolute left-3 top-3 w-4 h-4 text-[#5E6D84]" />
                 <input
@@ -537,7 +608,7 @@ export const AdminDashboardPlaceholder: React.FC = () => {
                   placeholder="Search students..."
                   value={studentSearch}
                   onChange={(e) => setStudentSearch(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 text-xs bg-white dark:bg-[#0B172B] border border-[#E8E2D5] dark:border-[#1F3354] rounded-md focus:ring-1 focus:ring-[#C5A869] dark:text-white"
+                  className="w-full pl-9 pr-4 py-2.5 text-xs bg-white dark:bg-[#0B172B] border border-[#E8E2D5] dark:border-[#1F3354] rounded-md focus:ring-1 focus:ring-[#C5A869] dark:text-white"
                 />
               </div>
 
@@ -559,7 +630,7 @@ export const AdminDashboardPlaceholder: React.FC = () => {
                   });
                   setStudentModalOpen(true);
                 }}
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold uppercase tracking-wider bg-[#071A3D] text-white dark:bg-[#C5A869] dark:text-[#060D1A] rounded-md transition-colors cursor-pointer"
+                className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider bg-[#071A3D] text-white dark:bg-[#C5A869] dark:text-[#060D1A] rounded-md transition-colors cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
                 <span>Add Student</span>
@@ -631,30 +702,36 @@ export const AdminDashboardPlaceholder: React.FC = () => {
           </div>
         )}
 
-        {/* Admission Details Modal */}
+        {/* Admission Details Modal (Redesigned for Mobile) */}
         {selectedAdmission && (
-          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-            <div className="bg-white dark:bg-[#0B172B] rounded-2xl border border-[#E8E2D5] dark:border-[#1F3354] max-w-2xl w-full p-6 sm:p-8 space-y-6 text-start max-h-[90vh] overflow-y-auto shadow-2xl">
+          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+            <div className="bg-white dark:bg-[#0B172B] rounded-2xl border border-[#E8E2D5] dark:border-[#1F3354] max-w-xl w-full p-5 sm:p-8 space-y-5 text-start max-h-[92vh] overflow-y-auto shadow-2xl">
               <div className="flex items-center justify-between border-b border-[#E8E2D5] dark:border-[#1F3354] pb-4">
                 <div>
                   <span className="text-xs font-mono font-bold text-[#8A7038] dark:text-[#D4BC82]">
                     {selectedAdmission.applicationId}
                   </span>
-                  <h2 className="text-xl font-bold text-[#071A3D] dark:text-[#F3EFE6]">
+                  <h2 className="text-lg sm:text-xl font-bold text-[#071A3D] dark:text-[#F3EFE6]">
                     {selectedAdmission.fullName}
                   </h2>
                 </div>
                 <button
                   onClick={() => setSelectedAdmission(null)}
-                  className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+                  className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs text-[#41536E] dark:text-[#C5D2E5]">
-                <div><strong>Email:</strong> {selectedAdmission.email}</div>
-                <div><strong>WhatsApp:</strong> {selectedAdmission.whatsapp}</div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs text-[#41536E] dark:text-[#C5D2E5] bg-[#FBF9F5] dark:bg-[#060D1A] p-4 rounded-xl border border-[#E8E2D5] dark:border-[#1F3354]">
+                <div className="flex items-center gap-2">
+                  <Mail className="w-4 h-4 text-[#C5A869] shrink-0" />
+                  <span className="truncate"><strong>Email:</strong> {selectedAdmission.email}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Phone className="w-4 h-4 text-[#C5A869] shrink-0" />
+                  <span><strong>WhatsApp:</strong> {selectedAdmission.whatsapp}</span>
+                </div>
                 <div><strong>Course:</strong> {selectedAdmission.course.toUpperCase()}</div>
                 <div><strong>Class Format:</strong> {selectedAdmission.classType.toUpperCase()}</div>
                 <div><strong>Language:</strong> {selectedAdmission.classLanguage.toUpperCase()}</div>
@@ -664,8 +741,8 @@ export const AdminDashboardPlaceholder: React.FC = () => {
               </div>
 
               {!selectedAdmission.isApplyingForSelf && (
-                <div className="p-4 rounded-xl bg-[#FBF9F5] dark:bg-[#060D1A] border border-[#E8E2D5] dark:border-[#1F3354] space-y-2 text-xs">
-                  <div className="font-bold text-[#071A3D] dark:text-[#F3EFE6]">Guardian Details</div>
+                <div className="p-4 rounded-xl bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/50 space-y-1.5 text-xs text-[#41536E] dark:text-[#C5D2E5]">
+                  <div className="font-bold text-[#071A3D] dark:text-[#F3EFE6]">Guardian / Parent Information</div>
                   <div><strong>Name:</strong> {selectedAdmission.guardianName}</div>
                   <div><strong>WhatsApp:</strong> {selectedAdmission.guardianWhatsapp}</div>
                   <div><strong>Relationship:</strong> {selectedAdmission.guardianRelationship}</div>
@@ -673,33 +750,33 @@ export const AdminDashboardPlaceholder: React.FC = () => {
               )}
 
               {selectedAdmission.notes && (
-                <div className="text-xs text-[#5E6D84] dark:text-[#9EADC4]">
+                <div className="text-xs text-[#5E6D84] dark:text-[#9EADC4] p-3 rounded-lg bg-gray-50 dark:bg-gray-900/50">
                   <strong>Notes:</strong> {selectedAdmission.notes}
                 </div>
               )}
 
-              <div className="pt-4 border-t border-[#E8E2D5] dark:border-[#1F3354] flex items-center justify-end gap-3">
+              <div className="pt-4 border-t border-[#E8E2D5] dark:border-[#1F3354] flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-3">
                 <button
                   onClick={() => setSelectedAdmission(null)}
-                  className="px-4 py-2 text-xs font-semibold bg-gray-200 dark:bg-gray-800 rounded-md cursor-pointer"
+                  className="w-full sm:w-auto px-4 py-2.5 text-xs font-semibold bg-gray-200 dark:bg-gray-800 rounded-md cursor-pointer"
                 >
                   Close
                 </button>
                 {selectedAdmission.status === 'PENDING' && (
-                  <>
+                  <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                     <button
                       onClick={() => handleAdmissionAction(selectedAdmission.applicationId, 'REJECTED')}
-                      className="px-4 py-2 text-xs font-semibold bg-red-600 text-white rounded-md hover:bg-red-700 cursor-pointer"
+                      className="w-full sm:w-auto px-4 py-2.5 text-xs font-semibold bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors cursor-pointer text-center"
                     >
                       Reject Application
                     </button>
                     <button
                       onClick={() => handleAdmissionAction(selectedAdmission.applicationId, 'APPROVED')}
-                      className="px-4 py-2 text-xs font-semibold bg-emerald-600 text-white rounded-md hover:bg-emerald-700 cursor-pointer"
+                      className="w-full sm:w-auto px-4 py-2.5 text-xs font-semibold bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors cursor-pointer text-center shadow-md"
                     >
                       Approve & Enroll Student
                     </button>
-                  </>
+                  </div>
                 )}
               </div>
             </div>
@@ -708,8 +785,8 @@ export const AdminDashboardPlaceholder: React.FC = () => {
 
         {/* Teacher Add/Edit Modal */}
         {teacherModalOpen && (
-          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-            <form onSubmit={handleSaveTeacher} className="bg-white dark:bg-[#0B172B] rounded-2xl border border-[#E8E2D5] dark:border-[#1F3354] max-w-lg w-full p-6 sm:p-8 space-y-4 text-start max-h-[90vh] overflow-y-auto shadow-2xl">
+          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+            <form onSubmit={handleSaveTeacher} className="bg-white dark:bg-[#0B172B] rounded-2xl border border-[#E8E2D5] dark:border-[#1F3354] max-w-lg w-full p-6 sm:p-8 space-y-4 text-start max-h-[92vh] overflow-y-auto shadow-2xl">
               <div className="flex items-center justify-between border-b border-[#E8E2D5] dark:border-[#1F3354] pb-3">
                 <h2 className="text-base font-bold text-[#071A3D] dark:text-[#F3EFE6]">
                   {editingTeacher ? 'Edit Teacher' : 'Add New Teacher'}
@@ -728,7 +805,7 @@ export const AdminDashboardPlaceholder: React.FC = () => {
                     disabled={!!editingTeacher}
                     value={teacherForm.teacherId}
                     onChange={(e) => setTeacherForm({ ...teacherForm, teacherId: e.target.value })}
-                    className="w-full px-3 py-2 border rounded dark:bg-[#060D1A] dark:border-[#1F3354] dark:text-white font-mono"
+                    className="w-full px-3 py-2.5 border rounded dark:bg-[#060D1A] dark:border-[#1F3354] dark:text-white font-mono"
                   />
                 </div>
                 <div>
@@ -738,7 +815,7 @@ export const AdminDashboardPlaceholder: React.FC = () => {
                     required
                     value={teacherForm.name}
                     onChange={(e) => setTeacherForm({ ...teacherForm, name: e.target.value })}
-                    className="w-full px-3 py-2 border rounded dark:bg-[#060D1A] dark:border-[#1F3354] dark:text-white"
+                    className="w-full px-3 py-2.5 border rounded dark:bg-[#060D1A] dark:border-[#1F3354] dark:text-white"
                   />
                 </div>
                 <div>
@@ -748,7 +825,7 @@ export const AdminDashboardPlaceholder: React.FC = () => {
                     required
                     value={teacherForm.email}
                     onChange={(e) => setTeacherForm({ ...teacherForm, email: e.target.value })}
-                    className="w-full px-3 py-2 border rounded dark:bg-[#060D1A] dark:border-[#1F3354] dark:text-white"
+                    className="w-full px-3 py-2.5 border rounded dark:bg-[#060D1A] dark:border-[#1F3354] dark:text-white"
                   />
                 </div>
                 <div>
@@ -758,7 +835,7 @@ export const AdminDashboardPlaceholder: React.FC = () => {
                     required
                     value={teacherForm.whatsapp}
                     onChange={(e) => setTeacherForm({ ...teacherForm, whatsapp: e.target.value })}
-                    className="w-full px-3 py-2 border rounded dark:bg-[#060D1A] dark:border-[#1F3354] dark:text-white"
+                    className="w-full px-3 py-2.5 border rounded dark:bg-[#060D1A] dark:border-[#1F3354] dark:text-white"
                   />
                 </div>
                 <div>
@@ -767,7 +844,7 @@ export const AdminDashboardPlaceholder: React.FC = () => {
                     type="text"
                     value={teacherForm.qualification}
                     onChange={(e) => setTeacherForm({ ...teacherForm, qualification: e.target.value })}
-                    className="w-full px-3 py-2 border rounded dark:bg-[#060D1A] dark:border-[#1F3354] dark:text-white"
+                    className="w-full px-3 py-2.5 border rounded dark:bg-[#060D1A] dark:border-[#1F3354] dark:text-white"
                   />
                 </div>
                 <div>
@@ -775,7 +852,7 @@ export const AdminDashboardPlaceholder: React.FC = () => {
                   <select
                     value={teacherForm.status}
                     onChange={(e) => setTeacherForm({ ...teacherForm, status: e.target.value as any })}
-                    className="w-full px-3 py-2 border rounded dark:bg-[#060D1A] dark:border-[#1F3354] dark:text-white"
+                    className="w-full px-3 py-2.5 border rounded dark:bg-[#060D1A] dark:border-[#1F3354] dark:text-white"
                   >
                     <option value="ACTIVE">ACTIVE</option>
                     <option value="INACTIVE">INACTIVE</option>
@@ -787,13 +864,13 @@ export const AdminDashboardPlaceholder: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setTeacherModalOpen(false)}
-                  className="px-4 py-2 text-xs font-semibold bg-gray-200 dark:bg-gray-800 rounded"
+                  className="px-4 py-2.5 text-xs font-semibold bg-gray-200 dark:bg-gray-800 rounded cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-xs font-semibold bg-[#071A3D] text-white dark:bg-[#C5A869] dark:text-[#060D1A] rounded"
+                  className="px-4 py-2.5 text-xs font-semibold bg-[#071A3D] text-white dark:bg-[#C5A869] dark:text-[#060D1A] rounded cursor-pointer"
                 >
                   Save Teacher
                 </button>
@@ -804,8 +881,8 @@ export const AdminDashboardPlaceholder: React.FC = () => {
 
         {/* Student Add/Edit Modal */}
         {studentModalOpen && (
-          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-            <form onSubmit={handleSaveStudent} className="bg-white dark:bg-[#0B172B] rounded-2xl border border-[#E8E2D5] dark:border-[#1F3354] max-w-lg w-full p-6 sm:p-8 space-y-4 text-start max-h-[90vh] overflow-y-auto shadow-2xl">
+          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+            <form onSubmit={handleSaveStudent} className="bg-white dark:bg-[#0B172B] rounded-2xl border border-[#E8E2D5] dark:border-[#1F3354] max-w-lg w-full p-6 sm:p-8 space-y-4 text-start max-h-[92vh] overflow-y-auto shadow-2xl">
               <div className="flex items-center justify-between border-b border-[#E8E2D5] dark:border-[#1F3354] pb-3">
                 <h2 className="text-base font-bold text-[#071A3D] dark:text-[#F3EFE6]">
                   {editingStudent ? 'Edit Student' : 'Add New Student'}
@@ -824,7 +901,7 @@ export const AdminDashboardPlaceholder: React.FC = () => {
                     disabled={!!editingStudent}
                     value={studentForm.studentId}
                     onChange={(e) => setStudentForm({ ...studentForm, studentId: e.target.value })}
-                    className="w-full px-3 py-2 border rounded dark:bg-[#060D1A] dark:border-[#1F3354] dark:text-white font-mono"
+                    className="w-full px-3 py-2.5 border rounded dark:bg-[#060D1A] dark:border-[#1F3354] dark:text-white font-mono"
                   />
                 </div>
                 <div>
@@ -834,7 +911,7 @@ export const AdminDashboardPlaceholder: React.FC = () => {
                     required
                     value={studentForm.name}
                     onChange={(e) => setStudentForm({ ...studentForm, name: e.target.value })}
-                    className="w-full px-3 py-2 border rounded dark:bg-[#060D1A] dark:border-[#1F3354] dark:text-white"
+                    className="w-full px-3 py-2.5 border rounded dark:bg-[#060D1A] dark:border-[#1F3354] dark:text-white"
                   />
                 </div>
                 <div>
@@ -842,7 +919,7 @@ export const AdminDashboardPlaceholder: React.FC = () => {
                   <select
                     value={studentForm.course}
                     onChange={(e) => setStudentForm({ ...studentForm, course: e.target.value as any })}
-                    className="w-full px-3 py-2 border rounded dark:bg-[#060D1A] dark:border-[#1F3354] dark:text-white uppercase"
+                    className="w-full px-3 py-2.5 border rounded dark:bg-[#060D1A] dark:border-[#1F3354] dark:text-white uppercase"
                   >
                     <option value="hifz">Hifz</option>
                     <option value="nazira">Nazira</option>
@@ -855,7 +932,7 @@ export const AdminDashboardPlaceholder: React.FC = () => {
                   <select
                     value={studentForm.classType}
                     onChange={(e) => setStudentForm({ ...studentForm, classType: e.target.value as any })}
-                    className="w-full px-3 py-2 border rounded dark:bg-[#060D1A] dark:border-[#1F3354] dark:text-white uppercase"
+                    className="w-full px-3 py-2.5 border rounded dark:bg-[#060D1A] dark:border-[#1F3354] dark:text-white uppercase"
                   >
                     <option value="group">Group</option>
                     <option value="individual">Individual</option>
@@ -868,7 +945,7 @@ export const AdminDashboardPlaceholder: React.FC = () => {
                     required
                     value={studentForm.teacherId}
                     onChange={(e) => setStudentForm({ ...studentForm, teacherId: e.target.value })}
-                    className="w-full px-3 py-2 border rounded dark:bg-[#060D1A] dark:border-[#1F3354] dark:text-white font-mono"
+                    className="w-full px-3 py-2.5 border rounded dark:bg-[#060D1A] dark:border-[#1F3354] dark:text-white font-mono"
                   />
                 </div>
                 <div>
@@ -876,7 +953,7 @@ export const AdminDashboardPlaceholder: React.FC = () => {
                   <select
                     value={studentForm.status}
                     onChange={(e) => setStudentForm({ ...studentForm, status: e.target.value as any })}
-                    className="w-full px-3 py-2 border rounded dark:bg-[#060D1A] dark:border-[#1F3354] dark:text-white"
+                    className="w-full px-3 py-2.5 border rounded dark:bg-[#060D1A] dark:border-[#1F3354] dark:text-white"
                   >
                     <option value="ACTIVE">ACTIVE</option>
                     <option value="PAUSED">PAUSED</option>
@@ -889,13 +966,13 @@ export const AdminDashboardPlaceholder: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setStudentModalOpen(false)}
-                  className="px-4 py-2 text-xs font-semibold bg-gray-200 dark:bg-gray-800 rounded"
+                  className="px-4 py-2.5 text-xs font-semibold bg-gray-200 dark:bg-gray-800 rounded cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 text-xs font-semibold bg-[#071A3D] text-white dark:bg-[#C5A869] dark:text-[#060D1A] rounded"
+                  className="px-4 py-2.5 text-xs font-semibold bg-[#071A3D] text-white dark:bg-[#C5A869] dark:text-[#060D1A] rounded cursor-pointer"
                 >
                   Save Student
                 </button>

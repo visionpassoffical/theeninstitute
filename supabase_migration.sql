@@ -1,10 +1,5 @@
 -- ============================================================================
--- THEEN - INSTITUTE OF QUR'AN : SUPABASE PRODUCTION MIGRATION SCRIPT (SECURED & CORRECTED)
--- ============================================================================
--- This script sets up the complete relational PostgreSQL schema, foreign keys,
--- constraints, database-level triggers, secure functions with fixed search_path,
--- and strict Row Level Security (RLS) policies using proper SQL boolean operators.
--- Fully idempotent and safe to run multiple times on a fresh or existing Supabase project.
+-- THEEN - INSTITUTE OF QUR'AN : SUPABASE PRODUCTION MIGRATION SCRIPT (SECURED & RESILIENT ADMIN)
 -- ============================================================================
 
 -- 1. PROFILES TABLE (Linked to Supabase Auth auth.users)
@@ -248,15 +243,18 @@ CREATE TRIGGER enforce_batch_capacity_trigger
     FOR EACH ROW
     EXECUTE FUNCTION public.check_batch_capacity();
 
--- Helper function to check if current user is admin
+-- Helper function to check if current user is admin (with fallback for primary admin email)
 CREATE OR REPLACE FUNCTION public.is_admin()
 RETURNS BOOLEAN AS $$
 BEGIN
-  RETURN EXISTS (
-    SELECT 1 FROM public.profiles
-    WHERE id = auth.uid()
-      AND role IN ('SUPER_ADMIN', 'ADMIN')
-      AND is_active = true
+  RETURN (
+    auth.jwt() ->> 'email' = 'theeninstitute@gmail.com' OR
+    EXISTS (
+      SELECT 1 FROM public.profiles
+      WHERE id = auth.uid()
+        AND role IN ('SUPER_ADMIN', 'ADMIN')
+        AND is_active = true
+    )
   );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
@@ -265,11 +263,14 @@ $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
 CREATE OR REPLACE FUNCTION public.is_super_admin()
 RETURNS BOOLEAN AS $$
 BEGIN
-  RETURN EXISTS (
-    SELECT 1 FROM public.profiles
-    WHERE id = auth.uid()
-      AND role = 'SUPER_ADMIN'
-      AND is_active = true
+  RETURN (
+    auth.jwt() ->> 'email' = 'theeninstitute@gmail.com' OR
+    EXISTS (
+      SELECT 1 FROM public.profiles
+      WHERE id = auth.uid()
+        AND role = 'SUPER_ADMIN'
+        AND is_active = true
+    )
   );
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
@@ -315,7 +316,7 @@ ALTER TABLE public.settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.email_logs ENABLE ROW LEVEL SECURITY;
 
 -- ============================================================================
--- RLS POLICIES (IDEMPOTENT & SECURE — USING PROPER SQL BOOLEAN OR/AND)
+-- RLS POLICIES (IDEMPOTENT & SECURE)
 -- ============================================================================
 
 -- Profiles Policies
@@ -337,18 +338,23 @@ CREATE POLICY "Public can submit admissions" ON public.admissions
 DROP POLICY IF EXISTS "Admins can manage admissions" ON public.admissions;
 CREATE POLICY "Admins can manage admissions" ON public.admissions
     FOR ALL
-    TO authenticated
+    TO anon, authenticated
     USING (public.is_admin())
-    With CHECK (public.is_admin());
+    WITH CHECK (public.is_admin());
 
 -- Teacher Applications Policies
 DROP POLICY IF EXISTS "Public can submit teacher applications" ON public.teacher_applications;
 CREATE POLICY "Public can submit teacher applications" ON public.teacher_applications
-    FOR INSERT WITH CHECK (status = 'PENDING');
+    FOR INSERT
+    TO anon, authenticated
+    WITH CHECK (status = 'PENDING');
 
 DROP POLICY IF EXISTS "Admins can manage teacher applications" ON public.teacher_applications;
 CREATE POLICY "Admins can manage teacher applications" ON public.teacher_applications
-    FOR ALL USING (public.is_admin());
+    FOR ALL
+    TO authenticated
+    USING (public.is_admin())
+    WITH CHECK (public.is_admin());
 
 -- Students Policies
 DROP POLICY IF EXISTS "Admins manage students, teachers view assigned" ON public.students;
