@@ -299,6 +299,57 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
 
+-- Trigger function to prevent regular users from escalating privileges or changing sensitive columns
+CREATE OR REPLACE FUNCTION public.prevent_privilege_escalation()
+RETURNS TRIGGER AS $$
+BEGIN
+  -- If current user is admin or super admin, allow all changes
+  IF public.is_admin() THEN
+    RETURN NEW;
+  END IF;
+
+  -- If regular user updating their own profile (id = auth.uid())
+  IF auth.uid() = NEW.id THEN
+    -- Prevent changing security-sensitive columns
+    NEW.role := OLD.role;
+    NEW.is_active := OLD.is_active;
+    NEW.permissions := OLD.permissions;
+    NEW.teacher_id := OLD.teacher_id;
+    NEW.email := OLD.email;
+    RETURN NEW;
+  END IF;
+
+  RAISE EXCEPTION 'Permission denied to modify profile.';
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
+
+DROP TRIGGER IF EXISTS prevent_profile_escalation_trigger ON public.profiles;
+CREATE TRIGGER prevent_profile_escalation_trigger
+    BEFORE UPDATE ON public.profiles
+    FOR EACH ROW
+    EXECUTE FUNCTION public.prevent_privilege_escalation();
+
+-- ============================================================================
+-- RESTRICT FUNCTION EXECUTE PERMISSIONS
+-- ============================================================================
+REVOKE EXECUTE ON FUNCTION public.check_batch_capacity() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.check_batch_capacity() TO authenticated, service_role;
+
+REVOKE EXECUTE ON FUNCTION public.is_admin() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.is_admin() TO authenticated, service_role, anon;
+
+REVOKE EXECUTE ON FUNCTION public.is_super_admin() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.is_super_admin() TO authenticated, service_role, anon;
+
+REVOKE EXECUTE ON FUNCTION public.is_teacher() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.is_teacher() TO authenticated, service_role;
+
+REVOKE EXECUTE ON FUNCTION public.get_teacher_id() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.get_teacher_id() TO authenticated, service_role;
+
+REVOKE EXECUTE ON FUNCTION public.prevent_privilege_escalation() FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.prevent_privilege_escalation() TO authenticated, service_role;
+
 -- ============================================================================
 -- ROW LEVEL SECURITY (RLS) ENABLEMENT
 -- ============================================================================
@@ -319,13 +370,13 @@ ALTER TABLE public.email_logs ENABLE ROW LEVEL SECURITY;
 -- RLS POLICIES (SECURE & PRIVILEGE-ESCALATION FREE)
 -- ============================================================================
 
--- Profiles Policies: Users can read own profile; ONLY admins can insert/update profiles (preventing privilege escalation)
+-- Profiles Policies: Clean, non-recursive SELECT and ALL policies
 DROP POLICY IF EXISTS "Users can read own profile or admin reads all" ON public.profiles;
 CREATE POLICY "Users can read own profile or admin reads all" ON public.profiles
     FOR SELECT USING (id = auth.uid() OR public.is_admin());
 
-DROP POLICY IF EXISTS "Admins can insert/update profiles" ON public.profiles;
-CREATE POLICY "Admins can insert/update profiles" ON public.profiles
+DROP POLICY IF EXISTS "Admins can manage profiles" ON public.profiles;
+CREATE POLICY "Admins can manage profiles" ON public.profiles
     FOR ALL 
     USING (public.is_admin())
     WITH CHECK (public.is_admin());
@@ -452,4 +503,4 @@ CREATE POLICY "Admins and teachers read email logs" ON public.email_logs
 
 DROP POLICY IF EXISTS "Admins manage email logs" ON public.email_logs;
 CREATE POLICY "Admin manage email logs" ON public.email_logs
-    FOR ALL USING (public.is_admin());
+    For ALL USING (public.is_admin());
