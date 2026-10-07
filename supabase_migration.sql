@@ -437,7 +437,7 @@ DROP POLICY IF EXISTS "Admins can write batches" ON public.batches;
 CREATE POLICY "Admins can write batches" ON public.batches
     FOR ALL USING (public.is_admin());
 
--- Attendance Policies (Strictly Verified against Assigned Students)
+-- Attendance Policies (Strictly Verified against Assigned Students with valid RLS table references)
 DROP POLICY IF EXISTS "Admins manage attendance, teacher views/submits own" ON public.attendance;
 CREATE POLICY "Admins manage attendance, teacher views/submits own" ON public.attendance
     FOR SELECT USING (public.is_admin() OR (public.is_teacher() AND teacher_id = public.get_teacher_id()));
@@ -447,7 +447,7 @@ CREATE POLICY "Teacher can insert own attendance for assigned student" ON public
     FOR INSERT WITH CHECK (
       public.is_admin() OR 
       (public.is_teacher() 
-       AND teacher_id = public.get_teacher_id()
+       AND attendance.teacher_id = public.get_teacher_id()
        AND EXISTS (
          SELECT 1 FROM public.students s 
          WHERE s.student_id = attendance.student_id 
@@ -457,10 +457,21 @@ CREATE POLICY "Teacher can insert own attendance for assigned student" ON public
 
 DROP POLICY IF EXISTS "Teacher can update own attendance for assigned student" ON public.attendance;
 CREATE POLICY "Teacher can update own attendance for assigned student" ON public.attendance
-    FOR UPDATE USING (
+    FOR UPDATE 
+    USING (
       public.is_admin() OR 
       (public.is_teacher() 
-       AND teacher_id = public.get_teacher_id()
+       AND attendance.teacher_id = public.get_teacher_id()
+       AND EXISTS (
+         SELECT 1 FROM public.students s 
+         WHERE s.student_id = attendance.student_id 
+           AND s.teacher_id = public.get_teacher_id()
+       ))
+    )
+    WITH CHECK (
+      public.is_admin() OR 
+      (public.is_teacher() 
+       AND attendance.teacher_id = public.get_teacher_id()
        AND EXISTS (
          SELECT 1 FROM public.students s 
          WHERE s.student_id = attendance.student_id 
@@ -468,13 +479,24 @@ CREATE POLICY "Teacher can update own attendance for assigned student" ON public
        ))
     );
 
--- Student Progress Policies (Strictly Verified against Assigned Students)
+-- Student Progress Policies (Strictly Verified against Assigned Students with fully qualified table column references)
 DROP POLICY IF EXISTS "Admins manage progress, teacher manages assigned" ON public.student_progress;
 CREATE POLICY "Admins manage progress, teacher manages assigned" ON public.student_progress
-    FOR ALL USING (
+    FOR ALL 
+    USING (
       public.is_admin() OR 
       (public.is_teacher() 
-       AND teacher_id = public.get_teacher_id()
+       AND student_progress.teacher_id = public.get_teacher_id()
+       AND EXISTS (
+         SELECT 1 FROM public.students s 
+         WHERE s.student_id = student_progress.student_id 
+           AND s.teacher_id = public.get_teacher_id()
+       ))
+    )
+    WITH CHECK (
+      public.is_admin() OR 
+      (public.is_teacher() 
+       AND student_progress.teacher_id = public.get_teacher_id()
        AND EXISTS (
          SELECT 1 FROM public.students s 
          WHERE s.student_id = student_progress.student_id 
@@ -503,4 +525,4 @@ CREATE POLICY "Admins and teachers read email logs" ON public.email_logs
 
 DROP POLICY IF EXISTS "Admins manage email logs" ON public.email_logs;
 CREATE POLICY "Admin manage email logs" ON public.email_logs
-    For ALL USING (public.is_admin());
+    FOR ALL USING (public.is_admin());
