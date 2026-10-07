@@ -1,5 +1,5 @@
 -- ============================================================================
--- THEEN - INSTITUTE OF QUR'AN : SUPABASE PRODUCTION MIGRATION SCRIPT (RECURSION-FREE RLS)
+-- THEEN - INSTITUTE OF QUR'AN : SUPABASE PRODUCTION MIGRATION SCRIPT (SECURE & RECURSION-FREE)
 -- ============================================================================
 
 -- 1. PROFILES TABLE (Linked to Supabase Auth auth.users)
@@ -316,17 +316,19 @@ ALTER TABLE public.settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.email_logs ENABLE ROW LEVEL SECURITY;
 
 -- ============================================================================
--- RLS POLICIES (RECURSION-FREE PROFILES POLICY)
+-- RLS POLICIES (SECURE & PRIVILEGE-ESCALATION FREE)
 -- ============================================================================
 
--- Profiles Policies (Direct JWT/UID check to prevent infinite recursion loop)
+-- Profiles Policies: Users can read own profile; ONLY admins can insert/update profiles (preventing privilege escalation)
 DROP POLICY IF EXISTS "Users can read own profile or admin reads all" ON public.profiles;
 CREATE POLICY "Users can read own profile or admin reads all" ON public.profiles
-    FOR SELECT USING (id = auth.uid() OR auth.jwt() ->> 'email' = 'theeninstitute@gmail.com');
+    FOR SELECT USING (id = auth.uid() OR public.is_admin());
 
 DROP POLICY IF EXISTS "Admins can insert/update profiles" ON public.profiles;
 CREATE POLICY "Admins can insert/update profiles" ON public.profiles
-    FOR ALL USING (id = auth.uid() OR auth.jwt() ->> 'email' = 'theeninstitute@gmail.com');
+    FOR ALL 
+    USING (public.is_admin())
+    WITH CHECK (public.is_admin());
 
 -- Admissions Policies
 DROP POLICY IF EXISTS "Public can submit admissions" ON public.admissions;
@@ -432,11 +434,11 @@ CREATE POLICY "Admins manage progress, teacher manages assigned" ON public.stude
 -- Finance Policies (Payments & Salary Records) - Admin Only
 DROP POLICY IF EXISTS "Admin only payments" ON public.payments;
 CREATE POLICY "Admin only payments" ON public.payments
-    FOR ALL USING (public.is_super_admin() || public.is_admin());
+    FOR ALL USING (public.is_super_admin() OR public.is_admin());
 
 DROP POLICY IF EXISTS "Admin only salary records" ON public.salary_records;
 CREATE POLICY "Admin only salary records" ON public.salary_records
-    FOR ALL USING (public.is_super_admin() || public.is_admin());
+    FOR ALL USING (public.is_super_admin() OR public.is_admin());
 
 -- Settings Policies
 DROP POLICY IF EXISTS "Admin only settings" ON public.settings;
@@ -449,5 +451,5 @@ CREATE POLICY "Admins and teachers read email logs" ON public.email_logs
     FOR SELECT USING (public.is_admin() OR (public.is_teacher() AND teacher_id = public.get_teacher_id()));
 
 DROP POLICY IF EXISTS "Admins manage email logs" ON public.email_logs;
-CREATE POLICY "Admins manage email logs" ON public.email_logs
+CREATE POLICY "Admin manage email logs" ON public.email_logs
     FOR ALL USING (public.is_admin());
