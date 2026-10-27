@@ -60,6 +60,20 @@ export interface FaqItem {
 
 export type ApplicationStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
 
+export type CourseType =
+  | 'quran_studies'
+  | 'islamic_studies'
+  | 'madrasa_education'
+  | 'tarbiyah'
+  | 'womens_education'
+  | 'short_courses'
+  | 'ramadan_daurah'
+  | 'khatmul_quran'
+  | 'hifz'
+  | 'nazira'
+  | 'fiqh'
+  | 'madrasa';
+
 export interface AdmissionApplication {
   applicationId: string; // Format: APP-0001
   fullName: string;
@@ -75,7 +89,7 @@ export interface AdmissionApplication {
   guardianName?: string;
   guardianWhatsapp?: string;
   guardianRelationship?: string;
-  course: 'hifz' | 'nazira' | 'fiqh' | 'madrasa';
+  course: CourseType;
   classType: 'group' | 'individual';
   classLanguage: 'ml' | 'en' | 'ur';
   previousLearning: 'beginner' | 'some_reading' | 'nazira_ongoing' | 'hifz_ongoing' | 'madrasa_studies' | 'other';
@@ -102,7 +116,7 @@ export interface TeacherApplication {
   experience: string;
   quranBackground?: string;
   otherQualifications?: string;
-  subjects: ('hifz' | 'nazira' | 'fiqh' | 'madrasa')[];
+  subjects: (CourseType | string)[];
   languages: ('ml' | 'en' | 'ur')[];
   preferredStudents: 'male' | 'female' | 'both';
   preferredTeachingTimes: string;

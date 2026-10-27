@@ -32,6 +32,26 @@ import {
   Globe,
 } from 'lucide-react';
 
+const COURSE_LABELS: Record<string, string> = {
+  quran_studies: 'Qur’an Studies (ഖുർആൻ പഠനം)',
+  islamic_studies: 'Islamic Studies (ഇസ്ലാമിക പഠനം)',
+  madrasa_education: 'Madrasa Education (മദ്റസാ വിദ്യാഭ്യാസം)',
+  tarbiyah: 'Tarbiyah & Character Building (തർബിയ്യത്ത്)',
+  womens_education: 'Women’s Islamic Education (വനിതാ പഠനം)',
+  short_courses: 'Short Courses (ഹ്രസ്വകാല കോഴ്സുകൾ)',
+  ramadan_daurah: 'Ramadan Daurah for Huffaz (റമളാൻ ദൗറ)',
+  khatmul_quran: 'Complete Qur’an Recitation (ഖതമുൽ ഖുർആൻ)',
+  hifz: 'Qur’an Studies / Hifz (Legacy)',
+  nazira: 'Qur’an Studies / Nazira (Legacy)',
+  fiqh: 'Islamic Studies / Fiqh (Legacy)',
+  madrasa: 'Madrasa Education (Legacy)',
+};
+
+const formatCourseLabel = (id?: string) => {
+  if (!id) return '-';
+  return COURSE_LABELS[id] || id.replace(/_/g, ' ').toUpperCase();
+};
+
 export const AdminDashboardPlaceholder: React.FC = () => {
   const { userProfile, logout } = useAuth();
   const { navigate } = useRouter();
@@ -67,7 +87,7 @@ export const AdminDashboardPlaceholder: React.FC = () => {
     gender: 'male',
     email: '',
     whatsapp: '',
-    subjects: ['hifz'],
+    subjects: ['quran_studies'],
     languages: ['ml'],
     qualification: '',
     institution: '',
@@ -85,7 +105,7 @@ export const AdminDashboardPlaceholder: React.FC = () => {
     studentId: 'STU-9999',
     name: '',
     gender: 'male',
-    course: 'hifz',
+    course: 'quran_studies',
     classType: 'group',
     classLanguage: 'ml',
     teacherId: 'MT001',
@@ -387,7 +407,7 @@ export const AdminDashboardPlaceholder: React.FC = () => {
                   </div>
 
                   <div className="grid grid-cols-2 gap-2 text-xs text-[#41536E] dark:text-[#C5D2E5] pt-1 border-t border-[#E8E2D5] dark:border-[#1F3354]">
-                    <div><strong>Course:</strong> {app.course.toUpperCase()}</div>
+                    <div><strong>Course:</strong> {formatCourseLabel(app.course)}</div>
                     <div><strong>Format:</strong> {app.classType.toUpperCase()}</div>
                     <div><strong>Lang:</strong> {app.classLanguage.toUpperCase()}</div>
                     <div><strong>Phone:</strong> {app.whatsapp}</div>
@@ -449,7 +469,7 @@ export const AdminDashboardPlaceholder: React.FC = () => {
                         <td className="px-4 py-3 font-bold text-[#071A3D] dark:text-[#F3EFE6]">
                           {app.fullName}
                         </td>
-                        <td className="px-4 py-3 uppercase font-medium">{app.course}</td>
+                        <td className="px-4 py-3 font-medium text-xs">{formatCourseLabel(app.course)}</td>
                         <td className="px-4 py-3 uppercase font-medium">{app.classType}</td>
                         <td className="px-4 py-3 text-[#5E6D84] dark:text-[#9EADC4]">
                           <div>{app.whatsapp}</div>
@@ -531,7 +551,7 @@ export const AdminDashboardPlaceholder: React.FC = () => {
                     gender: 'male',
                     email: '',
                     whatsapp: '',
-                    subjects: ['hifz'],
+                    subjects: ['quran_studies'],
                     languages: ['ml'],
                     qualification: '',
                     institution: '',
@@ -619,7 +639,7 @@ export const AdminDashboardPlaceholder: React.FC = () => {
                     studentId: `STU-${students.length + 1001}`,
                     name: '',
                     gender: 'male',
-                    course: 'hifz',
+                    course: 'quran_studies',
                     classType: 'group',
                     classLanguage: 'ml',
                     teacherId: 'MT001',
@@ -660,7 +680,7 @@ export const AdminDashboardPlaceholder: React.FC = () => {
                             {s.studentId}
                           </td>
                           <td className="px-4 py-3 font-bold text-[#071A3D] dark:text-[#F3EFE6]">{s.name}</td>
-                          <td className="px-4 py-3 uppercase font-medium">{s.course}</td>
+                          <td className="px-4 py-3 font-medium text-xs">{formatCourseLabel(s.course)}</td>
                           <td className="px-4 py-3 uppercase font-medium">{s.classType}</td>
                           <td className="px-4 py-3 font-mono">{s.teacherId}</td>
                           <td className="px-4 py-3">
@@ -732,7 +752,7 @@ export const AdminDashboardPlaceholder: React.FC = () => {
                   <Phone className="w-4 h-4 text-[#C5A869] shrink-0" />
                   <span><strong>WhatsApp:</strong> {selectedAdmission.whatsapp}</span>
                 </div>
-                <div><strong>Course:</strong> {selectedAdmission.course.toUpperCase()}</div>
+                <div><strong>Course:</strong> {formatCourseLabel(selectedAdmission.course)}</div>
                 <div><strong>Class Format:</strong> {selectedAdmission.classType.toUpperCase()}</div>
                 <div><strong>Language:</strong> {selectedAdmission.classLanguage.toUpperCase()}</div>
                 <div><strong>Gender:</strong> {selectedAdmission.gender}</div>
@@ -919,12 +939,20 @@ export const AdminDashboardPlaceholder: React.FC = () => {
                   <select
                     value={studentForm.course}
                     onChange={(e) => setStudentForm({ ...studentForm, course: e.target.value as any })}
-                    className="w-full px-3 py-2.5 border rounded dark:bg-[#060D1A] dark:border-[#1F3354] dark:text-white uppercase"
+                    className="w-full px-3 py-2.5 border rounded dark:bg-[#060D1A] dark:border-[#1F3354] dark:text-white"
                   >
-                    <option value="hifz">Hifz</option>
-                    <option value="nazira">Nazira</option>
-                    <option value="fiqh">Fiqh</option>
-                    <option value="madrasa">Madrasa</option>
+                    <option value="quran_studies">01 — Qur’an Studies (ഖുർആൻ പഠനം)</option>
+                    <option value="islamic_studies">02 — Islamic Studies (ഇസ്ലാമിക പഠനം)</option>
+                    <option value="madrasa_education">03 — Madrasa Education (മദ്റസാ വിദ്യാഭ്യാസം)</option>
+                    <option value="tarbiyah">04 — Tarbiyah & Character Building (തർബിയ്യത്ത്)</option>
+                    <option value="womens_education">05 — Women’s Islamic Education (വനിതാ പഠനം)</option>
+                    <option value="short_courses">06 — Short Courses (ഹ്രസ്വകാല കോഴ്സുകൾ)</option>
+                    <option value="ramadan_daurah">07 — Ramadan Daurah for Huffaz (റമളാൻ ദൗറ)</option>
+                    <option value="khatmul_quran">08 — Complete Qur’an Recitation (ഖതമുൽ ഖുർആൻ)</option>
+                    <option value="hifz">Hifz (Legacy)</option>
+                    <option value="nazira">Nazira (Legacy)</option>
+                    <option value="fiqh">Fiqh (Legacy)</option>
+                    <option value="madrasa">Madrasa (Legacy)</option>
                   </select>
                 </div>
                 <div>

@@ -1,11 +1,17 @@
 import { AdmissionApplication } from '../types';
-import { supabase } from '../lib/supabase';
+import { supabase, isSupabaseConfigured, supabaseConfigError } from '../lib/supabase';
 
 export const admissionService = {
-  // Submit new student admission application directly to Supabase public.admissions table (pure insert without requiring public select permission)
+  /**
+   * Submit new student admission application directly to Supabase public.admissions table
+   */
   submitApplication: async (
     data: Omit<AdmissionApplication, 'applicationId' | 'status' | 'submittedAt'>
   ): Promise<AdmissionApplication> => {
+    if (!isSupabaseConfigured) {
+      throw new Error(supabaseConfigError || 'Supabase integration is not configured.');
+    }
+
     // Generate unique application ID
     const randomNum = Math.floor(1000 + Math.random() * 9000);
     const applicationId = `APP-${randomNum}`;
@@ -56,8 +62,14 @@ export const admissionService = {
     return newApplication;
   },
 
-  // Get application by ID (for status / confirmation verification) from Supabase
+  /**
+   * Get application by ID from Supabase
+   */
   getApplicationById: async (id: string): Promise<AdmissionApplication | null> => {
+    if (!isSupabaseConfigured || !id) {
+      return null;
+    }
+
     try {
       const { data, error } = await supabase
         .from('admissions')

@@ -21,6 +21,7 @@ import { FaqSection } from './components/FaqSection';
 import { ContactSection } from './components/ContactSection';
 import { Footer } from './components/Footer';
 import { AdmissionModal } from './components/AdmissionModal';
+import { SupabaseConfigBanner } from './components/SupabaseConfigBanner';
 
 // Public Applications (Part 2)
 import { AdmissionsPage } from './pages/AdmissionsPage';
@@ -65,12 +66,12 @@ const VALID_ROUTES = [
 
 const MainContent: React.FC = () => {
   const [admissionModalOpen, setAdmissionModalOpen] = useState(false);
-  const [selectedAdmissionCourse, setSelectedAdmissionCourse] = useState<string | undefined>('hifz');
+  const [selectedAdmissionCourse, setSelectedAdmissionCourse] = useState<string | undefined>('quran_studies');
   const { fontClass } = useLanguage();
   const { currentRoute, navigate } = useRouter();
 
   const handleOpenAdmission = (courseId?: string) => {
-    navigate('/admissions', { courseId: courseId || 'hifz' });
+    navigate('/admissions', { courseId: courseId || 'quran_studies' });
   };
 
   const isDashboardRoute =
@@ -88,6 +89,7 @@ const MainContent: React.FC = () => {
 
   return (
     <div className={`min-h-screen flex flex-col ${fontClass} bg-[#FBF9F5] dark:bg-[#060D1A] text-[#071A3D] dark:text-[#F3EFE6] transition-colors duration-300`}>
+      <SupabaseConfigBanner />
       {!isDashboardRoute && isValidRoute && <Header onOpenAdmission={handleOpenAdmission} />}
 
       <main className="flex-1">

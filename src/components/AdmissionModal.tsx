@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { useRouter } from '../context/RouterContext';
-import { Language } from '../types';
+import { Language, CourseType } from '../types';
+import { admissionService } from '../services/admissionService';
 import { X, CheckCircle2, Send } from 'lucide-react';
 
 interface AdmissionModalProps {
@@ -14,7 +15,7 @@ interface ModalFormData {
   studentName: string;
   guardianName: string;
   gender: 'male' | 'female';
-  course: 'hifz' | 'nazira' | 'fiqh' | 'madrasa';
+  course: CourseType;
   classType: 'group' | 'individual';
   languagePreference: Language;
   whatsappNumber: string;
@@ -25,7 +26,7 @@ interface ModalFormData {
 export const AdmissionModal: React.FC<AdmissionModalProps> = ({
   isOpen,
   onClose,
-  defaultCourseId = 'hifz',
+  defaultCourseId = 'quran_studies',
 }) => {
   const { language, t, isRtl, fontClass } = useLanguage();
   const { navigate } = useRouter();
@@ -34,7 +35,7 @@ export const AdmissionModal: React.FC<AdmissionModalProps> = ({
     studentName: '',
     guardianName: '',
     gender: 'male',
-    course: (defaultCourseId as any) || 'hifz',
+    course: (defaultCourseId as CourseType) || 'quran_studies',
     classType: 'group',
     languagePreference: language,
     whatsappNumber: '',
@@ -45,6 +46,7 @@ export const AdmissionModal: React.FC<AdmissionModalProps> = ({
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [referenceId, setReferenceId] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   useEffect(() => {
     if (defaultCourseId) {
@@ -54,16 +56,40 @@ export const AdmissionModal: React.FC<AdmissionModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitError(null);
     setIsSubmitting(true);
 
-    setTimeout(() => {
-      const generatedRef = `APP-${String(Math.floor(1000 + Math.random() * 9000))}`;
-      setReferenceId(generatedRef);
-      setIsSubmitting(false);
+    try {
+      const app = await admissionService.submitApplication({
+        fullName: formData.studentName,
+        guardianName: formData.guardianName,
+        gender: formData.gender,
+        course: formData.course,
+        classType: formData.classType,
+        classLanguage: formData.languagePreference,
+        whatsapp: formData.whatsappNumber,
+        email: formData.email,
+        notes: formData.notes,
+        dateOfBirth: '',
+        age: 0,
+        country: '',
+        state: '',
+        city: '',
+        isApplyingForSelf: !formData.guardianName,
+        previousLearning: 'beginner',
+        preferredContact: 'whatsapp',
+        consent: true,
+      });
+      setReferenceId(app.applicationId);
       setIsSubmitted(true);
-    }, 600);
+    } catch (err: any) {
+      console.warn('Admission modal submit error:', err);
+      setSubmitError(err?.message || 'Failed to submit admission to database. Please check your connection and configuration.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleResetAndClose = () => {
@@ -151,6 +177,12 @@ export const AdmissionModal: React.FC<AdmissionModalProps> = ({
                 </button>
               </div>
 
+              {submitError && (
+                <div className="p-3 rounded-lg bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-xs text-red-700 dark:text-red-300">
+                  {submitError}
+                </div>
+              )}
+
               {/* Row 1: Student Name & Guardian Name */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
@@ -206,10 +238,30 @@ export const AdmissionModal: React.FC<AdmissionModalProps> = ({
                     onChange={(e) => setFormData({ ...formData, course: e.target.value as any })}
                     className="w-full px-3.5 py-2.5 text-xs bg-[#FBF9F5] dark:bg-[#060D1A] border border-[#E8E2D5] dark:border-[#1F3354] rounded-md focus:outline-hidden focus:border-[#C5A869] dark:text-white"
                   >
-                    <option value="hifz">{t.admissions.fields.courseHifz}</option>
-                    <option value="nazira">{t.admissions.fields.courseNazira}</option>
-                    <option value="fiqh">{t.admissions.fields.courseFiqh}</option>
-                    <option value="madrasa">{t.admissions.fields.courseMadrasa}</option>
+                    <option value="quran_studies">
+                      {language === 'ml' ? '01. ഖുർആൻ പഠനം (Qur’an Studies)' : language === 'ur' ? '01. قرآنی علوم (Qur’an Studies)' : '01. Qur’an Studies (ഖുർആൻ പഠനം)'}
+                    </option>
+                    <option value="islamic_studies">
+                      {language === 'ml' ? '02. ഇസ്ലാമിക പഠനം (Islamic Studies)' : language === 'ur' ? '02. اسلامی علوم (Islamic Studies)' : '02. Islamic Studies (ഇസ്ലാമിക പഠനം)'}
+                    </option>
+                    <option value="madrasa_education">
+                      {language === 'ml' ? '03. മദ്റസാ വിദ്യാഭ്യാസം (Madrasa Education)' : language === 'ur' ? '03. مدرسہ ایجوکیشن (Madrasa Education)' : '03. Madrasa Education (മദ്റസാ വിദ്യാഭ്യാസം)'}
+                    </option>
+                    <option value="tarbiyah">
+                      {language === 'ml' ? '04. തർബിയ്യത്ത് & സ്വഭാവസംസ്കരണം (Tarbiyah)' : language === 'ur' ? '04. تربیت و اخلاق (Tarbiyah)' : '04. Tarbiyah & Character Building (തർബിയ്യത്ത്)'}
+                    </option>
+                    <option value="womens_education">
+                      {language === 'ml' ? '05. വനിതകൾക്കായുള്ള ഇസ്ലാമിക പഠനം (Women’s Education)' : language === 'ur' ? '05. خواتین کی تعلیم (Women’s Education)' : '05. Women’s Islamic Education (വനിതാ പഠനം)'}
+                    </option>
+                    <option value="short_courses">
+                      {language === 'ml' ? '06. ഹ്രസ്വകാല കോഴ്സുകൾ (Short Courses)' : language === 'ur' ? '06. مختصر کورسز (Short Courses)' : '06. Short Courses (ഹ്രസ്വകാല കോഴ്സുകൾ)'}
+                    </option>
+                    <option value="ramadan_daurah">
+                      {language === 'ml' ? '07. റമളാനിലെ ഹാഫിളീങ്ങൾക്കുള്ള ദൗറ (Ramadan Daurah)' : language === 'ur' ? '07. دورۂ رمضان (Ramadan Daurah)' : '07. Ramadan Daurah for Huffaz (റമളാൻ ദൗറ)'}
+                    </option>
+                    <option value="khatmul_quran">
+                      {language === 'ml' ? '08. ഖതമുൽ ഖുർആൻ പ്രോഗ്രാം (Khatmul Qur’an)' : language === 'ur' ? '08. ختمِ قرآن (Khatmul Qur’an)' : '08. Khatmul Qur’an Programme (ഖതമുൽ ഖുർആൻ)'}
+                    </option>
                   </select>
                 </div>
               </div>

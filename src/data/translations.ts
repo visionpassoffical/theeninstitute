@@ -199,7 +199,7 @@ export const translations = {
         {
           num: '01',
           title: 'Explore Courses',
-          desc: 'Review our Hifz, Nazira, Fiqh, and Madrasa programs to choose the track that aligns with your educational goals.',
+          desc: 'Review our 8 comprehensive programs—from Qur’an Studies and Islamic Studies to Tarbiyah and Khatmul Qur’an—to choose the track that aligns with your educational goals.',
         },
         {
           num: '02',
@@ -267,10 +267,19 @@ export const translations = {
 
         // Course
         course: 'Select Course',
-        courseHifz: '01 — HIFZ (Qur’an Memorization)',
-        courseNazira: '02 — NAZIRA (Qur’an Reading & Tajweed)',
-        courseFiqh: '03 — FIQH (Shafi & Hanafi Jurisprudence)',
-        courseMadrasa: '04 — MADRASA (Foundational Islamic Studies)',
+        courseQuranStudies: '01 — Qur’an Studies (ഖുർആൻ പഠനം)',
+        courseIslamicStudies: '02 — Islamic Studies (ഇസ്ലാമിക പഠനം)',
+        courseMadrasaEducation: '03 — Madrasa Education (മദ്റസാ വിദ്യാഭ്യാസം)',
+        courseTarbiyah: '04 — Tarbiyah & Character Building (തർബിയ്യത്ത് & സ്വഭാവസംസ്കരണം)',
+        courseWomensEducation: '05 — Women’s Islamic Education (വനിതകൾക്കായുള്ള ഇസ്ലാമിക പഠനം)',
+        courseShortCourses: '06 — Short Courses (ഹ്രസ്വകാല കോഴ്സുകൾ)',
+        courseRamadanDaurah: '07 — Ramadan Daurah for Huffaz (റമളാനിലെ ഹാഫിളീങ്ങൾക്കുള്ള ദൗറ)',
+        courseKhatmulQuran: '08 — Khatmul Qur’an Programme (ഖതമുൽ ഖുർആൻ പ്രോഗ്രാം)',
+        // Legacy fallback aliases
+        courseHifz: '01 — Qur’an Studies (Hifz & Recitation)',
+        courseNazira: '02 — Qur’an Studies (Nazira & Tajweed)',
+        courseFiqh: '03 — Islamic Studies (Fiqh & Jurisprudence)',
+        courseMadrasa: '04 — Madrasa Education (Deeniyyat)',
 
         // Class format
         classType: 'Class Format',
@@ -383,11 +392,20 @@ export const translations = {
         otherQualifications: 'Other Relevant Qualifications (Optional)',
 
         // Subjects
-        subjectsLabel: 'Subjects You Can Teach (Select all that apply)',
-        subjectHifz: 'HIFZ (Qur’an Memorization)',
-        subjectNazira: 'NAZIRA (Applied Tajweed & Recitation)',
-        subjectFiqh: 'FIQH (Islamic Jurisprudence)',
-        subjectMadrasa: 'MADRASA (Basic Islamic Studies & Akhlaq)',
+        subjectsLabel: 'Subjects & Specializations You Can Teach (Select all that apply)',
+        subjectQuranStudies: 'Qur’an Studies (ഖുർആൻ പഠനം)',
+        subjectIslamicStudies: 'Islamic Studies (ഇസ്ലാമിക പഠനം)',
+        subjectMadrasaEducation: 'Madrasa Education (മദ്റസാ വിദ്യാഭ്യാസം)',
+        subjectTarbiyah: 'Tarbiyah & Character Building (തർബിയ്യത്ത് & സ്വഭാവസംസ്കരണം)',
+        subjectWomensEducation: 'Women’s Islamic Education (വനിതകൾക്കായുള്ള ഇസ്ലാമിക പഠനം)',
+        subjectShortCourses: 'Short Courses (ഹ്രസ്വകാല കോഴ്സുകൾ)',
+        subjectRamadanDaurah: 'Ramadan Daurah for Huffaz (റമളാനിലെ ഹാഫിളീങ്ങൾക്കുള്ള ദൗറ)',
+        subjectKhatmulQuran: 'Khatmul Qur’an Programme (ഖതമുൽ ഖുർആൻ പ്രോഗ്രാം)',
+        // Legacy fallback aliases
+        subjectHifz: 'Qur’an Studies (Hifz & Recitation)',
+        subjectNazira: 'Qur’an Studies (Nazira & Tajweed)',
+        subjectFiqh: 'Islamic Studies (Fiqh & Jurisprudence)',
+        subjectMadrasa: 'Madrasa Education (Deeniyyat)',
 
         // Languages
         languagesLabel: 'Languages You Can Teach In (Select all that apply)',
@@ -700,7 +718,7 @@ export const translations = {
         {
           num: '01',
           title: 'കോഴ്സുകൾ മനസ്സിലാക്കുക',
-          desc: 'ഹിഫ്ള്, നാളിറ, ഫിഖ്ഹ്, മദ്റസ കോഴ്സുകളിൽ നിങ്ങളുടെ ആവശ്യത്തിന് അനുയോജ്യമായത് തിരഞ്ഞെടുക്കുക.',
+          desc: '8 പ്രധാന വിഭാഗങ്ങളിലുള്ള സമഗ്ര കോഴ്സുകളിൽ നിന്ന് നിങ്ങളുടെ പഠന ലക്ഷ്യത്തിന് അനുയോജ്യമായത് തിരഞ്ഞെടുക്കുക.',
         },
         {
           num: '02',
@@ -768,10 +786,19 @@ export const translations = {
 
         // Course
         course: 'കോഴ്സ് തിരഞ്ഞെടുക്കുക',
-        courseHifz: '01 — ഹിഫ്ള് (ഖുർആൻ മനഃപാഠം)',
-        courseNazira: '02 — നാളിറ (തജ്‌വീദോടെയുള്ള പാരായണം)',
-        courseFiqh: '03 — ഫിഖ്ഹ് (ശാഫിഈ, ഹനഫീ കർമ്മശാസ്ത്രം)',
-        courseMadrasa: '04 — മദ്റസ (അടിസ്ഥാന ഇസ്ലാമിക പഠനം)',
+        courseQuranStudies: '01 — ഖുർആൻ പഠനം (Qur’an Studies)',
+        courseIslamicStudies: '02 — ഇസ്ലാമിക പഠനം (Islamic Studies)',
+        courseMadrasaEducation: '03 — മദ്റസാ വിദ്യാഭ്യാസം (Madrasa Education)',
+        courseTarbiyah: '04 — തർബിയ്യത്ത് & സ്വഭാവസംസ്കരണം (Tarbiyah & Character Building)',
+        courseWomensEducation: '05 — വനിതകൾക്കായുള്ള ഇസ്ലാമിക പഠനം (Women’s Islamic Education)',
+        courseShortCourses: '06 — ഹ്രസ്വകാല കോഴ്സുകൾ (Short Courses)',
+        courseRamadanDaurah: '07 — റമളാനിലെ ഹാഫിളീങ്ങൾക്കുള്ള ദൗറ (Ramadan Daurah for Huffaz)',
+        courseKhatmulQuran: '08 — ഖതമുൽ ഖുർആൻ പ്രോഗ്രാം (Khatmul Qur’an Programme)',
+        // Legacy fallback aliases
+        courseHifz: '01 — ഖുർആൻ പഠനം (ഹിഫ്ള് & പാരായണം)',
+        courseNazira: '02 — ഖുർആൻ പഠനം (നാളിറ & തജ്‌വീദ്)',
+        courseFiqh: '03 — ഇസ്ലാമിക പഠനം (ഫിഖ്ഹ്)',
+        courseMadrasa: '04 — മദ്റസാ വിദ്യാഭ്യാസം (ദീനിയ്യാത്ത്)',
 
         // Class format
         classType: 'ക്ലാസ് രീതി',
@@ -884,11 +911,20 @@ export const translations = {
         otherQualifications: 'മറ്റു പ്രസക്ത യോഗ്യതകൾ (ഐച്ഛികം)',
 
         // Subjects
-        subjectsLabel: 'പഠിപ്പിക്കാൻ സാധിക്കുന്ന വിഷയങ്ങൾ (ലഭ്യമായവ തിരഞ്ഞെടുക്കാം)',
-        subjectHifz: 'ഹിഫ്ള് (ഖുർആൻ മനഃപാഠം)',
-        subjectNazira: 'നാളിറ (തജ്‌വീദോടെയുള്ള പാരായണം)',
-        subjectFiqh: 'ഫിഖ്ഹ് (കർമ്മശാസ്ത്രം)',
-        subjectMadrasa: 'മദ്റസ (അടിസ്ഥാന ഇസ്ലാമിക പഠനം & അഖ്‌ലാഖ്)',
+        subjectsLabel: 'പഠിപ്പിക്കാൻ സാധിക്കുന്ന വിഷയങ്ങൾ / മേഖലകൾ (ലഭ്യമായവ തിരഞ്ഞെടുക്കാം)',
+        subjectQuranStudies: 'ഖുർആൻ പഠനം (Qur’an Studies)',
+        subjectIslamicStudies: 'ഇസ്ലാമിക പഠനം (Islamic Studies)',
+        subjectMadrasaEducation: 'മദ്റസാ വിദ്യാഭ്യാസം (Madrasa Education)',
+        subjectTarbiyah: 'തർബിയ്യത്ത് & സ്വഭാവസംസ്കരണം (Tarbiyah & Character Building)',
+        subjectWomensEducation: 'വനിതകൾക്കായുള്ള ഇസ്ലാമിക പഠനം (Women’s Islamic Education)',
+        subjectShortCourses: 'ഹ്രസ്വകാല കോഴ്സുകൾ (Short Courses)',
+        subjectRamadanDaurah: 'റമളാനിലെ ഹാഫിളീങ്ങൾക്കുള്ള ദൗറ (Ramadan Daurah for Huffaz)',
+        subjectKhatmulQuran: 'ഖതമുൽ ഖുർആൻ പ്രോഗ്രാം (Complete Qur’an Recitation Programme)',
+        // Legacy fallback aliases
+        subjectHifz: 'ഖുർആൻ പഠനം (ഹിഫ്ള് & പാരായണം)',
+        subjectNazira: 'ഖുർആൻ പഠനം (നാളിറ & തജ്‌വീദ്)',
+        subjectFiqh: 'ഇസ്ലാമിക പഠനം (ഫിഖ്ഹ്)',
+        subjectMadrasa: 'മദ്റസാ വിദ്യാഭ്യാസം (ദീനിയ്യാത്ത്)',
 
         // Languages
         languagesLabel: 'ക്ലാസ് എടുക്കാൻ സാധിക്കുന്ന ഭാഷകൾ (തിരഞ്ഞെടുക്കാം)',
@@ -1201,7 +1237,7 @@ export const translations = {
         {
           num: '01',
           title: 'کورس کا انتخاب کریں',
-          desc: 'حفظ، ناظرہ، فقہ یا مدرسہ کورسز میں سے اپنی پسندیدہ تعلیم کا انتخاب کریں۔',
+          desc: 'قرآنی علوم، فقہ و اسلامیات، اور ختمِ قرآن سمیت تمام ۸ اہم کورسز میں سے اپنے مطلوبہ شعبے کا انتخاب کریں۔',
         },
         {
           num: '02',
@@ -1269,6 +1305,15 @@ export const translations = {
 
         // Course
         course: 'کورس منتخب کریں',
+        courseQuranStudies: '۰۱ — قرآنی علوم و مطالعہ (Qur’an Studies)',
+        courseIslamicStudies: '۰۲ — اسلامک اسٹڈیز (Islamic Studies)',
+        courseMadrasaEducation: '۰۳ — مدرسہ ایجوکیشن (Madrasa Education)',
+        courseTarbiyah: '۰۴ — تربیت و تزکیۂ اخلاق (Tarbiyah & Character Building)',
+        courseWomensEducation: '۰۵ — خواتین کے لیے اسلامی تعلیم (Women’s Islamic Education)',
+        courseShortCourses: '۰۶ — مختصر دورانیہ کے کورസ്ز (Short Courses)',
+        courseRamadanDaurah: '۰۷ — رمضان میں حفاظ کے لیے دورہ (Ramadan Daurah for Huffaz)',
+        courseKhatmulQuran: '۰۸ — ختمِ قرآن پروگرام (Khatmul Qur’an Programme)',
+        // Legacy fallback aliases
         courseHifz: '۰۱ — حفظِ قرآن (مکمل یا منتخب سورتیں)',
         courseNazira: '۰۲ — ناظرہ مع تجوید (قرآن فہمی و تلاوت)',
         courseFiqh: '۰۳ — فقہ اسلامی (شافعی و حنفی احکام)',
@@ -1385,11 +1430,20 @@ export const translations = {
         otherQualifications: 'دیگر متعلقہ تعلیمی اسناد (اختیاری)',
 
         // Subjects
-        subjectsLabel: 'وہ مضامین جنہیں آپ پڑھا سکتے ہیں (ایک یا زائد منتخب کریں)',
-        subjectHifz: 'حفظِ قرآن (Qur’an Memorization)',
-        subjectNazira: 'ناظرہ مع تجوید (Applied Tajweed & Recitation)',
-        subjectFiqh: 'فقہ اسلامی (Islamic Jurisprudence)',
-        subjectMadrasa: 'دینی مدرسہ و بنیادی اخلاقیات (Basic Islamic Studies & Akhlaq)',
+        subjectsLabel: 'وہ مضامین / شعبہ جات جن میں آپ تدریس کر سکتے ہیں (ایک یا زائد منتخب کریں)',
+        subjectQuranStudies: 'قرآنی علوم و مطالعہ (Qur’an Studies)',
+        subjectIslamicStudies: 'اسلامک اسٹڈیز (Islamic Studies)',
+        subjectMadrasaEducation: 'مدرسہ ایجوکیشن (Madrasa Education)',
+        subjectTarbiyah: 'تربیت و تزکیۂ اخلاق (Tarbiyah & Character Building)',
+        subjectWomensEducation: 'خواتین کے لیے اسلامی تعلیم (Women’s Islamic Education)',
+        subjectShortCourses: 'مختصر دورانیہ کے کورسز (Short Courses)',
+        subjectRamadanDaurah: 'رمضان میں حفاظ کے لیے دورہ (Ramadan Daurah for Huffaz)',
+        subjectKhatmulQuran: 'مکمل ختمِ قرآن پروگرام (Complete Qur’an Recitation Programme)',
+        // Legacy fallback aliases
+        subjectHifz: 'قرآنی علوم (حفظ و تلاوت)',
+        subjectNazira: 'قرآنی علوم (ناظرہ و تجوید)',
+        subjectFiqh: 'اسلامک اسٹڈیز (فقہ اسلامی)',
+        subjectMadrasa: 'مدرسہ ایجوکیشن (دینیات)',
 
         // Languages
         languagesLabel: 'وہ زبانیں جن میں آپ تدریس کر سکتے ہیں (ایک یا زائد منتخب کریں)',
@@ -1514,9 +1568,9 @@ export const faqData: FaqItem[] = [
       ur: 'التین انسٹیٹیوٹ کیا ہے؟',
     },
     answer: {
-      en: 'THEEN – Institute of Qur’an is a specialized online educational institute dedicated to Qur’anic memorization (Hifz), recitation with Tajweed (Nazira), classical Islamic jurisprudence (Fiqh according to Shafi and Hanafi schools), and foundational Madrasa studies.',
-      ml: 'ഖുർആൻ മനഃപാഠം (ഹിഫ്ള്), ഉച്ചാരണശുദ്ധിയോടെയുള്ള പാരായണം (നാളിറ & തജ്‌വീദ്), കർമ്മശാസ്ത്രം (ശാഫിഈ, ഹനഫീ മദ്ഹബ്), അടിസ്ഥാന മദ്റസ വിഷയങ്ങൾ എന്നിവയിൽ ഓൺലൈൻ വഴി ഉന്നത നിലവാരത്തിലുള്ള വിദ്യാഭ്യാസം നൽകുന്ന സ്ഥാപനമാണ് തീൻ (THEEN).',
-      ur: 'التین – انسٹیٹیوٹ آف قرآن ایک آن لائن تعلیمی ادارہ ہے جو حفظِ قرآن، ناظرہ مع تجوید، فقہ اسلامی (شافعی و حنفی) اور بنیادی دینی مدرسہ کورسز میں معیاری اور مستند تعلیم فراہم کرتا ہے۔',
+      en: 'THEEN – Institute of Qur’an is a specialized online educational institute offering structured courses in Qur’an Studies, Islamic Studies, Madrasa Education, Tarbiyah & Character Building, Women’s Islamic Education, Short Courses, Ramadan Daurah for Huffaz, and Complete Qur’an Recitation Programme.',
+      ml: 'ഖുർആൻ പഠനം, ഇസ്ലാമിക പഠനം, മദ്റസാ വിദ്യാഭ്യാസം, തർബിയ്യത്ത് & സ്വഭാവസംസ്കരണം, വനിതകൾക്കായുള്ള ഇസ്ലാമിക പഠനം, ഹ്രസ്വകാല കോഴ്സുകൾ, റമളാനിലെ ഹാഫിളീങ്ങൾക്കുള്ള ദൗറ, ഖതമുൽ ഖുർആൻ പ്രോഗ്രാം എന്നീ 8 പ്രധാന കോഴ്സുകളിൽ ഓൺലൈൻ വഴി ഉന്നത നിലവാരത്തിലുള്ള വിദ്യാഭ്യാസം നൽകുന്ന സ്ഥാപനമാണ് തീൻ (THEEN).',
+      ur: 'التین – انسٹیٹیوٹ آف قرآن ایک آن لائن تعلیمی ادارہ ہے جو قرآنی علوم، اسلامک اسٹڈیز، مدرسہ ایجوکیشن، تربیت و اخلاق، خواتین کی دینی تعلیم، مختصر کورسز، رمضان دورہ برائے حفاظ، اور ختمِ قرآن پروگرام میں معیاری اور مستند تعلیم فراہم کرتا ہے۔',
     },
   },
   {
@@ -1527,9 +1581,9 @@ export const faqData: FaqItem[] = [
       ur: 'التین میں کون سے کورسز دستیاب ہیں؟',
     },
     answer: {
-      en: 'We offer four core programs: 01 — HIFZ (Qur’an Memorization), 02 — NAZIRA (Qur’an Reading with Tajweed), 03 — FIQH (Islamic Jurisprudence in Shafi and Hanafi Madhhabs), and 04 — MADRASA (Foundational Islamic Studies, Aqeedah, Akhlaq, and Adhkar).',
-      ml: 'നാല് പ്രധാന കോഴ്സുകളാണ് തീനിലുള്ളത്: 01 — ഹിഫ്ള് (ഖുർആൻ മനഃപാഠം), 02 — നാളിറ (തജ്‌വീദോടെയുള്ള ഖുർആൻ പാരായണം), 03 — ഫിഖ്ഹ് (ശാഫിഈ, ഹനഫീ കർമ്മശാസ്ത്ര പഠനം), 04 — മദ്റസ (അടിസ്ഥാന ഇസ്ലാമിക പഠനം, അഖീദ, അഖ്‌ലാഖ്, ദിക്ർ-ദുആകൾ).',
-      ur: 'ہمارے ہاں چار اہم کورسز دستیاب ہیں: ۰۱ — حفظِ قرآن، ۰۲ — ناظرہ مع تجوید، ۰۳ — فقہ اسلامی (شافعی و حنفی مکاتبِ فکر)، اور ۰۴ — دینی مدرسہ (بنیادی اسلامی عقائد، اخلاق، اذکار اور اعمال)۔',
+      en: 'We offer eight comprehensive programs: 01 — Qur’an Studies, 02 — Islamic Studies, 03 — Madrasa Education, 04 — Tarbiyah & Character Building, 05 — Women’s Islamic Education, 06 — Short Courses, 07 — Ramadan Daurah for Huffaz, and 08 — Complete Qur’an Recitation Programme.',
+      ml: 'തീനിൽ 8 സമഗ്ര പഠനശാഖകൾ ലഭ്യമാണ്: 01 — ഖുർആൻ പഠനം, 02 — ഇസ്ലാമിക പഠനം, 03 — മദ്റസാ വിദ്യാഭ്യാസം, 04 — തർബിയ്യത്ത് & സ്വഭാവസംസ്കരണം, 05 — വനിതകൾക്കായുള്ള ഇസ്ലാമിക പഠനം, 06 — ഹ്രസ്വകാല കോഴ്സുകൾ, 07 — റമളാനിലെ ഹാഫിളീങ്ങൾക്കുള്ള ദൗറ, 08 — ഖതമുൽ ഖുർആൻ പ്രോഗ്രാം.',
+      ur: 'ہمارے ہاں آٹھ جامع کورسز دستیاب ہیں: ۰۱ — قرآنی علوم، ۰۲ — اسلامک اسٹڈیز، ۰۳ — مدرسہ ایجوکیشن، ۰۴ — تربیت و اخلاق، ۰۵ — خواتین کی تعلیم، ۰۶ — مختصر کورسز، ۰۷ — رمضان دورہ برائے حفاظ، اور ۰۸ — ختمِ قرآن پروگرام۔',
     },
   },
   {

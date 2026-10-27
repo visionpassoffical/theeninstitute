@@ -22,7 +22,7 @@ export const TeacherAttendancePage: React.FC = () => {
   const { userProfile } = useAuth();
   const { language } = useLanguage();
 
-  const teacherId = userProfile?.teacherId || 'MT001';
+  const teacherId = userProfile?.teacherId || '';
 
   const [records, setRecords] = useState<AttendanceRecord[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
@@ -188,10 +188,18 @@ export const TeacherAttendancePage: React.FC = () => {
                 className="w-full px-3 py-2 text-xs bg-[#FBF9F5] dark:bg-[#060D1A] border border-[#E8E2D5] dark:border-[#1F3354] rounded-lg text-[#071A3D] dark:text-[#F3EFE6] focus:outline-hidden focus:border-[#C5A869]"
               >
                 <option value="all">All Courses</option>
-                <option value="hifz">HIFZ</option>
-                <option value="nazira">NAZIRA</option>
-                <option value="fiqh">FIQH</option>
-                <option value="madrasa">MADRASA</option>
+                <option value="quran_studies">ഖുർആൻ പഠനം (Qur’an Studies)</option>
+                <option value="islamic_studies">ഇസ്ലാമിക പഠനം (Islamic Studies)</option>
+                <option value="madrasa_education">മദ്റസാ വിദ്യാഭ്യാസം (Madrasa Education)</option>
+                <option value="tarbiyah">തർബിയ്യത്ത് & സ്വഭാവസംസ്കരണം (Tarbiyah)</option>
+                <option value="womens_education">വനിതകൾക്കായുള്ള ഇസ്ലാമിക പഠനം (Women's Education)</option>
+                <option value="short_courses">ഹ്രസ്വകാല കോഴ്സുകൾ (Short Courses)</option>
+                <option value="ramadan_daurah">റമളാനിലെ ഹാഫിളീങ്ങൾക്കുള്ള ദൗറ (Ramadan Daurah)</option>
+                <option value="khatmul_quran">ഖതമുൽ ഖുർആൻ പ്രോഗ്രാം (Khatmul Qur’an)</option>
+                <option value="hifz">Hifz (Legacy)</option>
+                <option value="nazira">Nazira (Legacy)</option>
+                <option value="fiqh">Fiqh (Legacy)</option>
+                <option value="madrasa">Madrasa (Legacy)</option>
               </select>
             </div>
 

@@ -69,11 +69,7 @@ export const adminService = {
       }));
     } catch (err) {
       console.warn('Admissions fetch notice:', err);
-      try {
-        return JSON.parse(localStorage.getItem('theen_admissions_data') || '[]');
-      } catch {
-        return [];
-      }
+      return [];
     }
   },
 
@@ -138,7 +134,7 @@ export const adminService = {
         gender: row.gender || 'male',
         email: row.email,
         whatsapp: row.whatsapp || '',
-        subjects: row.subjects || ['hifz'],
+        subjects: row.subjects || ['quran_studies'],
         languages: row.languages || ['ml'],
         qualification: row.qualification || '',
         institution: row.institution || '',

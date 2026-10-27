@@ -3,176 +3,156 @@ import {
   AttendanceStatus,
   AttendanceSubmissionPayload,
   AttendanceSummary,
+  CourseType,
   EmailReportResult,
 } from '../types/academic';
+import { supabase, isSupabaseConfigured, supabaseConfigError } from '../lib/supabase';
 import { getKolkataDateString } from '../utils/timezone';
 import { emailService } from './emailService';
 
-const STORAGE_ATTENDANCE_KEY = 'theen_academic_attendance_records';
-
-// Seed sample past attendance for realistic historical calculation
-const INITIAL_ATTENDANCE: AttendanceRecord[] = [
-  {
-    attendanceId: 'MT001_STU-1001_2026-10-01',
-    date: '2026-10-01',
-    submittedAt: '2026-10-01T10:15:00.000Z',
-    teacherUid: 'teacher-uid-mt001',
-    teacherId: 'MT001',
-    teacherName: 'Usthad Abdul Rahman',
-    studentId: 'STU-1001',
-    studentName: 'Muhammad Rayan',
-    course: 'hifz',
-    classType: 'group',
-    classLanguage: 'ml',
-    status: 'PRESENT',
-  },
-  {
-    attendanceId: 'MT001_STU-1001_2026-10-02',
-    date: '2026-10-02',
-    submittedAt: '2026-10-02T10:12:00.000Z',
-    teacherUid: 'teacher-uid-mt001',
-    teacherId: 'MT001',
-    teacherName: 'Usthad Abdul Rahman',
-    studentId: 'STU-1001',
-    studentName: 'Muhammad Rayan',
-    course: 'hifz',
-    classType: 'group',
-    classLanguage: 'ml',
-    status: 'PRESENT',
-  },
-  {
-    attendanceId: 'MT001_STU-1002_2026-10-01',
-    date: '2026-10-01',
-    submittedAt: '2026-10-01T10:15:00.000Z',
-    teacherUid: 'teacher-uid-mt001',
-    teacherId: 'MT001',
-    teacherName: 'Usthad Abdul Rahman',
-    studentId: 'STU-1002',
-    studentName: 'Bilal Ahmed',
-    course: 'hifz',
-    classType: 'group',
-    classLanguage: 'ml',
-    status: 'PRESENT',
-  },
-  {
-    attendanceId: 'MT001_STU-1002_2026-10-02',
-    date: '2026-10-02',
-    submittedAt: '2026-10-02T10:12:00.000Z',
-    teacherUid: 'teacher-uid-mt001',
-    teacherId: 'MT001',
-    teacherName: 'Usthad Abdul Rahman',
-    studentId: 'STU-1002',
-    studentName: 'Bilal Ahmed',
-    course: 'hifz',
-    classType: 'group',
-    classLanguage: 'ml',
-    status: 'ABSENT',
-  },
-  {
-    attendanceId: 'MT001_STU-1003_2026-10-01',
-    date: '2026-10-01',
-    submittedAt: '2026-10-01T10:15:00.000Z',
-    teacherUid: 'teacher-uid-mt001',
-    teacherId: 'MT001',
-    teacherName: 'Usthad Abdul Rahman',
-    studentId: 'STU-1003',
-    studentName: 'Zayd Faheem',
-    course: 'hifz',
-    classType: 'group',
-    classLanguage: 'ml',
-    status: 'PRESENT',
-  },
-  {
-    attendanceId: 'FT001_STU-2001_2026-10-01',
-    date: '2026-10-01',
-    submittedAt: '2026-10-01T11:00:00.000Z',
-    teacherUid: 'teacher-uid-ft001',
-    teacherId: 'FT001',
-    teacherName: 'Mu’allima Fathima Zahra',
-    studentId: 'STU-2001',
-    studentName: 'Amina Fathima',
-    course: 'nazira',
-    classType: 'group',
-    classLanguage: 'ml',
-    status: 'PRESENT',
-  },
-];
-
 export const attendanceService = {
-  initStore: () => {
-    try {
-      if (!localStorage.getItem(STORAGE_ATTENDANCE_KEY)) {
-        localStorage.setItem(STORAGE_ATTENDANCE_KEY, JSON.stringify(INITIAL_ATTENDANCE));
-      }
-    } catch {
-      // Ignore
-    }
-  },
-
   /**
    * Deterministic Attendance ID Generator
-   * Section 32: "teacherId_studentId_date" prevents duplicate records
+   * Format: "${teacherId}_${studentId}_${date}" prevents duplicate records
    */
   generateAttendanceDocId: (teacherId: string, studentId: string, date: string): string => {
     return `${teacherId}_${studentId}_${date}`;
   },
 
   /**
-   * Get all attendance records for a specific teacher
-   * Section 13 & 15: Teacher can view ONLY their own submitted attendance
+   * Get all attendance records for a specific teacher from Supabase public.attendance table.
+   * Under RLS, teacher can view ONLY their own submitted attendance.
    */
   getAttendanceForTeacher: async (teacherId: string): Promise<AttendanceRecord[]> => {
-    attendanceService.initStore();
+    if (!isSupabaseConfigured || !teacherId) {
+      return [];
+    }
+
     try {
-      const all: AttendanceRecord[] = JSON.parse(
-        localStorage.getItem(STORAGE_ATTENDANCE_KEY) || '[]'
-      );
-      return all
-        .filter((r) => r.teacherId === teacherId)
-        .sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
-    } catch {
-      return INITIAL_ATTENDANCE.filter((r) => r.teacherId === teacherId);
+      const { data, error } = await supabase
+        .from('attendance')
+        .select('*')
+        .eq('teacher_id', teacherId)
+        .order('submitted_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching attendance from Supabase:', error);
+        return [];
+      }
+
+      return (data || []).map((row: any) => ({
+        attendanceId: row.attendance_id,
+        date: row.date,
+        submittedAt: row.submitted_at,
+        teacherUid: row.teacher_user_id || '',
+        teacherId: row.teacher_id,
+        teacherName: row.teacher_name || '',
+        studentId: row.student_id,
+        studentName: row.student_name || '',
+        course: row.course as CourseType,
+        classType: row.class_type,
+        classLanguage: row.class_language,
+        status: row.status as AttendanceStatus,
+      }));
+    } catch (err) {
+      console.error('Attendance fetch failed:', err);
+      return [];
     }
   },
 
   /**
-   * Check if attendance has already been submitted today for a specific student
-   * Section 12: Duplicate Attendance Protection
+   * Check if attendance has already been submitted today for a specific student from Supabase
    */
   getTodayAttendanceForStudent: async (
     teacherId: string,
     studentId: string,
     dateString?: string
   ): Promise<AttendanceRecord | null> => {
-    attendanceService.initStore();
+    if (!isSupabaseConfigured || !teacherId || !studentId) {
+      return null;
+    }
+
     const date = dateString || getKolkataDateString();
-    const docId = attendanceService.generateAttendanceDocId(teacherId, studentId, date);
 
     try {
-      const all: AttendanceRecord[] = JSON.parse(
-        localStorage.getItem(STORAGE_ATTENDANCE_KEY) || '[]'
-      );
-      return all.find((r) => r.attendanceId === docId) || null;
+      const { data, error } = await supabase
+        .from('attendance')
+        .select('*')
+        .eq('teacher_id', teacherId)
+        .eq('student_id', studentId)
+        .eq('date', date)
+        .maybeSingle();
+
+      if (error || !data) {
+        return null;
+      }
+
+      return {
+        attendanceId: data.attendance_id,
+        date: data.date,
+        submittedAt: data.submitted_at,
+        teacherUid: data.teacher_user_id || '',
+        teacherId: data.teacher_id,
+        teacherName: data.teacher_name || '',
+        studentId: data.student_id,
+        studentName: data.student_name || '',
+        course: data.course as CourseType,
+        classType: data.class_type,
+        classLanguage: data.class_language,
+        status: data.status as AttendanceStatus,
+      };
     } catch {
       return null;
     }
   },
 
   /**
-   * Get all attendance records submitted today by this teacher
+   * Get all attendance records submitted today by this teacher from Supabase
    */
   getTodayAttendanceForTeacher: async (
     teacherId: string,
     dateString?: string
   ): Promise<AttendanceRecord[]> => {
-    const records = await attendanceService.getAttendanceForTeacher(teacherId);
+    if (!isSupabaseConfigured || !teacherId) {
+      return [];
+    }
+
     const date = dateString || getKolkataDateString();
-    return records.filter((r) => r.date === date);
+
+    try {
+      const { data, error } = await supabase
+        .from('attendance')
+        .select('*')
+        .eq('teacher_id', teacherId)
+        .eq('date', date);
+
+      if (error) {
+        console.error('Error fetching today attendance from Supabase:', error);
+        return [];
+      }
+
+      return (data || []).map((row: any) => ({
+        attendanceId: row.attendance_id,
+        date: row.date,
+        submittedAt: row.submitted_at,
+        teacherUid: row.teacher_user_id || '',
+        teacherId: row.teacher_id,
+        teacherName: row.teacher_name || '',
+        studentId: row.student_id,
+        studentName: row.student_name || '',
+        course: row.course as CourseType,
+        classType: row.class_type,
+        classLanguage: row.class_language,
+        status: row.status as AttendanceStatus,
+      }));
+    } catch {
+      return [];
+    }
   },
 
   /**
-   * Submit single or batch attendance
-   * Performs duplicate check, saves records, and triggers background email report dispatch.
+   * Submit single or batch attendance to Supabase public.attendance table
+   * Upserts on unique (attendance_id) and triggers automated email dispatch.
    */
   submitAttendanceBatch: async (
     payload: AttendanceSubmissionPayload
@@ -180,55 +160,63 @@ export const attendanceService = {
     savedRecords: AttendanceRecord[];
     emailResult: EmailReportResult;
   }> => {
-    attendanceService.initStore();
+    if (!isSupabaseConfigured) {
+      throw new Error(supabaseConfigError || 'Supabase integration is not configured.');
+    }
+
     const submittedAt = new Date().toISOString();
-    const all: AttendanceRecord[] = JSON.parse(
-      localStorage.getItem(STORAGE_ATTENDANCE_KEY) || '[]'
-    );
-
-    const newRecords: AttendanceRecord[] = [];
-
-    for (const item of payload.records) {
+    const rowsToUpsert = payload.records.map((item) => {
       const docId = attendanceService.generateAttendanceDocId(
         payload.teacherId,
         item.studentId,
         payload.date
       );
 
-      // Check if existing
-      const existingIndex = all.findIndex((r) => r.attendanceId === docId);
-
-      const record: AttendanceRecord = {
-        attendanceId: docId,
+      return {
+        attendance_id: docId,
         date: payload.date,
-        submittedAt,
-        teacherUid: payload.teacherUid,
-        teacherId: payload.teacherId,
-        teacherName: payload.teacherName,
-        studentId: item.studentId,
-        studentName: item.studentName,
+        teacher_id: payload.teacherId,
+        teacher_user_id: payload.teacherUid || null,
+        teacher_name: payload.teacherName,
+        student_id: item.studentId,
+        student_name: item.studentName,
         course: item.course,
-        classType: item.classType,
-        classLanguage: item.classLanguage,
+        class_type: item.classType,
+        class_language: item.classLanguage,
         status: item.status,
+        submitted_at: submittedAt,
       };
+    });
 
-      if (existingIndex >= 0) {
-        // Controlled update of existing record for that day
-        all[existingIndex] = record;
-      } else {
-        all.unshift(record);
-      }
-      newRecords.push(record);
+    const { error } = await supabase
+      .from('attendance')
+      .upsert(rowsToUpsert, { onConflict: 'attendance_id' });
+
+    if (error) {
+      console.error('Supabase attendance submission error:', error);
+      throw new Error(error.message || 'Failed to persist attendance to Supabase.');
     }
 
-    try {
-      localStorage.setItem(STORAGE_ATTENDANCE_KEY, JSON.stringify(all));
-    } catch (err) {
-      console.warn('Attendance storage write error:', err);
-    }
+    const savedRecords: AttendanceRecord[] = payload.records.map((item) => ({
+      attendanceId: attendanceService.generateAttendanceDocId(
+        payload.teacherId,
+        item.studentId,
+        payload.date
+      ),
+      date: payload.date,
+      submittedAt,
+      teacherUid: payload.teacherUid,
+      teacherId: payload.teacherId,
+      teacherName: payload.teacherName,
+      studentId: item.studentId,
+      studentName: item.studentName,
+      course: item.course,
+      classType: item.classType,
+      classLanguage: item.classLanguage,
+      status: item.status,
+    }));
 
-    // Section 19-21: Trigger automatic attendance email report to theeninstitute@gmail.com
+    // Trigger automatic attendance email report to theeninstitute@gmail.com
     // Attendance must NOT fail if email fails
     let emailResult: EmailReportResult;
     try {
@@ -236,30 +224,26 @@ export const attendanceService = {
     } catch (err: any) {
       emailResult = {
         sent: false,
-        message: 'Attendance was saved, but the email report could not be sent.',
+        message: 'Attendance was saved to database, but the email report could not be sent.',
         recipient: 'theeninstitute@gmail.com',
         error: err?.message,
       };
     }
 
     return {
-      savedRecords: newRecords,
+      savedRecords,
       emailResult,
     };
   },
 
   /**
-   * Calculate Attendance Summary for a student
-   * Section 14: Formula Attendance % = Present / Total Records * 100
+   * Calculate Attendance Summary for a student from Supabase
    */
   calculateStudentAttendanceSummary: async (
     teacherId: string,
     studentId: string
   ): Promise<AttendanceSummary> => {
-    const all = await attendanceService.getAttendanceForTeacher(teacherId);
-    const studentRecords = all.filter((r) => r.studentId === studentId);
-
-    if (studentRecords.length === 0) {
+    if (!isSupabaseConfigured || !teacherId || !studentId) {
       return {
         totalClasses: 0,
         presentCount: 0,
@@ -269,16 +253,43 @@ export const attendanceService = {
       };
     }
 
-    const presentCount = studentRecords.filter((r) => r.status === 'PRESENT').length;
-    const absentCount = studentRecords.filter((r) => r.status === 'ABSENT').length;
-    const percentage = Math.round((presentCount / studentRecords.length) * 100);
+    try {
+      const { data, error } = await supabase
+        .from('attendance')
+        .select('status')
+        .eq('teacher_id', teacherId)
+        .eq('student_id', studentId);
 
-    return {
-      totalClasses: studentRecords.length,
-      presentCount,
-      absentCount,
-      attendancePercentage: percentage,
-      hasData: true,
-    };
+      if (error || !data || data.length === 0) {
+        return {
+          totalClasses: 0,
+          presentCount: 0,
+          absentCount: 0,
+          attendancePercentage: 0,
+          hasData: false,
+        };
+      }
+
+      const totalClasses = data.length;
+      const presentCount = data.filter((r: any) => r.status === 'PRESENT').length;
+      const absentCount = data.filter((r: any) => r.status === 'ABSENT').length;
+      const percentage = Math.round((presentCount / totalClasses) * 100);
+
+      return {
+        totalClasses,
+        presentCount,
+        absentCount,
+        attendancePercentage: percentage,
+        hasData: true,
+      };
+    } catch {
+      return {
+        totalClasses: 0,
+        presentCount: 0,
+        absentCount: 0,
+        attendancePercentage: 0,
+        hasData: false,
+      };
+    }
   },
 };

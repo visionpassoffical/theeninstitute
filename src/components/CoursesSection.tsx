@@ -3,7 +3,18 @@ import { coursesData } from '../data/coursesData';
 import { useLanguage } from '../context/LanguageContext';
 import { Course } from '../types';
 import { CourseModal } from './CourseModal';
-import { BookOpen, Sparkles, Scale, GraduationCap, ArrowRight, Info } from 'lucide-react';
+import {
+  BookOpen,
+  Scale,
+  GraduationCap,
+  HeartHandshake,
+  Award,
+  Clock,
+  Moon,
+  CheckCircle2,
+  ArrowRight,
+  Info,
+} from 'lucide-react';
 
 interface CoursesSectionProps {
   onOpenAdmission: (courseId?: string) => void;
@@ -15,14 +26,22 @@ export const CoursesSection: React.FC<CoursesSectionProps> = ({ onOpenAdmission 
 
   const getCourseIcon = (id: string) => {
     switch (id) {
-      case 'hifz':
+      case 'quran_studies':
         return BookOpen;
-      case 'nazira':
-        return Sparkles;
-      case 'fiqh':
+      case 'islamic_studies':
         return Scale;
-      case 'madrasa':
+      case 'madrasa_education':
         return GraduationCap;
+      case 'tarbiyah':
+        return HeartHandshake;
+      case 'womens_education':
+        return Award;
+      case 'short_courses':
+        return Clock;
+      case 'ramadan_daurah':
+        return Moon;
+      case 'khatmul_quran':
+        return CheckCircle2;
       default:
         return BookOpen;
     }
@@ -57,28 +76,31 @@ export const CoursesSection: React.FC<CoursesSectionProps> = ({ onOpenAdmission 
           </p>
         </div>
 
-        {/* Courses 4-Card Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-8">
+        {/* Courses 8-Card Grid (Responsive 1-col on mobile, 2-col on desktop) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
           {coursesData.map((course) => {
             const Icon = getCourseIcon(course.id);
-            const courseName = course.name[language] || course.name.en;
+            const currentName = course.name[language] || course.name.en;
+            const altName = language === 'ml' ? course.name.en : course.name.ml;
             const courseSubtitle = course.subtitle[language] || course.subtitle.en;
             const courseDesc = course.description[language] || course.description.en;
+            const highlights = course.highlights[language] || course.highlights.en;
 
             return (
               <div
                 key={course.id}
-                className="bg-white dark:bg-[#0B172B] rounded-xl border border-[#E8E2D5] dark:border-[#1F3354] p-7 sm:p-8 flex flex-col justify-between hover:border-[#C5A869]/60 dark:hover:border-[#C5A869]/60 transition-all duration-300 hover:shadow-lg group text-start relative"
+                className="bg-white dark:bg-[#0B172B] rounded-xl border border-[#E8E2D5] dark:border-[#1F3354] p-6 sm:p-8 flex flex-col justify-between hover:border-[#C5A869]/70 dark:hover:border-[#C5A869]/70 transition-all duration-300 hover:shadow-lg group text-start relative"
               >
-                {/* Top Row: Number & Icon */}
+                {/* Top Section */}
                 <div>
-                  <div className="flex items-center justify-between pb-5 border-b border-[#E8E2D5]/70 dark:border-[#1F3354]/70 mb-5">
+                  {/* Top Row: Number, Tag & Icon */}
+                  <div className="flex items-center justify-between pb-4 border-b border-[#E8E2D5]/70 dark:border-[#1F3354]/70 mb-5">
                     <div className="flex items-center gap-2.5">
                       <span className="font-brand-display text-sm sm:text-base font-bold text-[#C5A869] tracking-wider">
                         {course.number}
                       </span>
                       <span className="w-1.5 h-1.5 rounded-full bg-[#C5A869]/60" />
-                      <span className="text-xs uppercase tracking-widest text-[#8C9AA8] dark:text-[#64748B] font-semibold">
+                      <span className="text-[11px] uppercase tracking-widest text-[#8C9AA8] dark:text-[#64748B] font-semibold">
                         PROGRAM
                       </span>
                     </div>
@@ -87,29 +109,50 @@ export const CoursesSection: React.FC<CoursesSectionProps> = ({ onOpenAdmission 
                     </div>
                   </div>
 
-                  {/* Title & Subtitle */}
-                  <div className="space-y-1.5 mb-3">
+                  {/* Title in Current Language & Bilingual Sub-heading */}
+                  <div className="space-y-1 mb-3">
                     <h3
                       className={`text-xl sm:text-2xl font-bold text-[#071A3D] dark:text-[#F3EFE6] tracking-tight ${fontClass}`}
                     >
-                      {courseName}
+                      {currentName}
                     </h3>
-                    <p className={`text-xs font-semibold text-[#8A7038] dark:text-[#D4BC82] uppercase tracking-wider ${fontClass}`}>
+                    <p className="text-xs font-semibold text-[#8A7038] dark:text-[#D4BC82] tracking-wide">
+                      {altName}
+                    </p>
+                    <p className={`text-xs text-[#5E6D84] dark:text-[#9EADC4] pt-1 leading-normal ${fontClass}`}>
                       {courseSubtitle}
                     </p>
                   </div>
 
                   {/* Description */}
                   <p
-                    className={`text-xs sm:text-sm text-[#41536E] dark:text-[#B1BFD4] leading-relaxed line-clamp-3 mb-6 ${fontClass}`}
+                    className={`text-xs sm:text-sm text-[#41536E] dark:text-[#B1BFD4] leading-relaxed mb-5 ${fontClass}`}
                   >
                     {courseDesc}
                   </p>
+
+                  {/* Key Curriculum Badges/Highlights */}
+                  <div className="mb-6 space-y-1.5">
+                    <div className="text-[11px] font-semibold uppercase tracking-wider text-[#071A3D] dark:text-[#E2EAF4]">
+                      {language === 'ml' ? 'പ്രധാന പഠനവിഷയങ്ങൾ:' : language === 'ur' ? 'اہم نصابی موضوعات:' : 'Core Topics:'}
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {highlights.map((h, i) => (
+                        <span
+                          key={i}
+                          className="inline-block px-2.5 py-1 text-[11px] rounded bg-[#F4EFE6] dark:bg-[#060D1A] text-[#41536E] dark:text-[#C5D2E5] border border-[#E8E2D5] dark:border-[#1F3354]"
+                        >
+                          {h}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
                 </div>
 
                 {/* Bottom Row: Actions */}
                 <div className="pt-4 border-t border-[#E8E2D5]/70 dark:border-[#1F3354]/70 flex items-center justify-between gap-3">
                   <button
+                    type="button"
                     onClick={() => setSelectedCourse(course)}
                     className="inline-flex items-center gap-1.5 text-xs font-medium text-[#071A3D] dark:text-[#E2EAF4] hover:text-[#C5A869] dark:hover:text-[#C5A869] transition-colors cursor-pointer"
                   >
@@ -118,8 +161,9 @@ export const CoursesSection: React.FC<CoursesSectionProps> = ({ onOpenAdmission 
                   </button>
 
                   <button
+                    type="button"
                     onClick={() => onOpenAdmission(course.id)}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-white bg-[#071A3D] dark:bg-[#C5A869] dark:text-[#060D1A] hover:bg-[#0B2556] dark:hover:bg-[#D4BC82] rounded-md transition-colors shadow-xs"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold uppercase tracking-wider text-white bg-[#071A3D] dark:bg-[#C5A869] dark:text-[#060D1A] hover:bg-[#0B2556] dark:hover:bg-[#D4BC82] rounded-md transition-colors shadow-xs cursor-pointer"
                   >
                     <span>{t.nav.applyNow}</span>
                     <ArrowRight

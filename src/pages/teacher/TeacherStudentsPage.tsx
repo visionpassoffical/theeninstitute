@@ -32,7 +32,7 @@ export const TeacherStudentsPage: React.FC = () => {
   const { userProfile } = useAuth();
   const { language } = useLanguage();
 
-  const teacherId = userProfile?.teacherId || 'MT001';
+  const teacherId = userProfile?.teacherId || '';
 
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
@@ -143,10 +143,18 @@ export const TeacherStudentsPage: React.FC = () => {
                 className="w-full px-3 py-2 text-xs bg-[#FBF9F5] dark:bg-[#060D1A] border border-[#E8E2D5] dark:border-[#1F3354] rounded-lg text-[#071A3D] dark:text-[#F3EFE6] focus:outline-hidden focus:border-[#C5A869]"
               >
                 <option value="all">All Courses</option>
-                <option value="hifz">HIFZ (Memorization)</option>
-                <option value="nazira">NAZIRA (Recitation)</option>
-                <option value="fiqh">FIQH (Islamic Jurisprudence)</option>
-                <option value="madrasa">MADRASA (Curriculum)</option>
+                <option value="quran_studies">01 — Qur’an Studies (ഖുർആൻ പഠനം)</option>
+                <option value="islamic_studies">02 — Islamic Studies (ഇസ്ലാമിക പഠനം)</option>
+                <option value="madrasa_education">03 — Madrasa Education (മദ്റസാ വിദ്യാഭ്യാസം)</option>
+                <option value="tarbiyah">04 — Tarbiyah & Character Building (തർബിയ്യത്ത്)</option>
+                <option value="womens_education">05 — Women’s Islamic Education (വനിതാ പഠനം)</option>
+                <option value="short_courses">06 — Short Courses (ഹ്രസ്വകാല കോഴ്സുകൾ)</option>
+                <option value="ramadan_daurah">07 — Ramadan Daurah for Huffaz (റമളാൻ ദൗറ)</option>
+                <option value="khatmul_quran">08 — Complete Qur’an Recitation (ഖതമുൽ ഖുർആൻ)</option>
+                <option value="hifz">Hifz (Legacy)</option>
+                <option value="nazira">Nazira (Legacy)</option>
+                <option value="fiqh">Fiqh (Legacy)</option>
+                <option value="madrasa">Madrasa (Legacy)</option>
               </select>
             </div>
 

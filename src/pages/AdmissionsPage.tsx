@@ -25,7 +25,7 @@ export const AdmissionsPage: React.FC = () => {
   const validationMessages = t.admissions.validation as Record<string, string>;
   const schema = createAdmissionSchema(validationMessages);
 
-  const defaultCourse = (routeState?.courseId as any) || 'hifz';
+  const defaultCourse = (routeState?.courseId as any) || 'quran_studies';
 
   const {
     register,
@@ -96,6 +96,13 @@ export const AdmissionsPage: React.FC = () => {
       clearErrors(['guardianName', 'guardianWhatsapp', 'guardianRelationship']);
     }
   }, [isApplyingForSelf, setValue, clearErrors]);
+
+  // Sync routeState courseId when user arrives via course card 'Apply Now'
+  useEffect(() => {
+    if (routeState?.courseId) {
+      setValue('course', routeState.courseId as any, { shouldValidate: true });
+    }
+  }, [routeState?.courseId, setValue]);
 
   const onSubmit = async (data: AdmissionFormValues) => {
     setSubmitError(null);
@@ -481,28 +488,92 @@ export const AdmissionsPage: React.FC = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {[
                   {
-                    id: 'hifz',
+                    id: 'quran_studies',
                     num: '01',
-                    label: t.admissions.fields.courseHifz,
-                    desc: 'Systematic Qur’an memorization with daily new lessons, revision, and Tajweed reinforcement.',
+                    label: t.admissions.fields.courseQuranStudies,
+                    desc:
+                      language === 'ml'
+                        ? 'നൂറാനി ഖാഇദ, നാളിറത്ത്, തജ്വീദ്, ഹിഫ്ള്, ഹിഫ്ള് ആവർത്തനം, തഫ്സീർ, ഖിറാഅത്ത്.'
+                        : language === 'ur'
+                        ? 'نورانی قاعدہ، ناظرہ، تجوید، حفظ، دورِ حفظ، تفسیر اور قراءات کا مکمل نصاب۔'
+                        : 'Noorani Qaida, Nazira, Tajweed, Hifz, Hifz Revision, Tafseer, and Qira’at.',
                   },
                   {
-                    id: 'nazira',
+                    id: 'islamic_studies',
                     num: '02',
-                    label: t.admissions.fields.courseNazira,
-                    desc: 'Reading fluency directly from the Mushaf with precise Makharij and applied Tajweed rules.',
+                    label: t.admissions.fields.courseIslamicStudies,
+                    desc:
+                      language === 'ml'
+                        ? 'അഖീദ, ഫിഖ്ഹ് (ശാഫിഈ, ഹനഫി), ഹദീസ്, സീറത്ത്, ഇസ്ലാമിക ചരിത്രം.'
+                        : language === 'ur'
+                        ? 'عقائد، فقہ (شافعی و حنفی)، احادیث، سیرت النبی ﷺ اور تاریخ اسلام۔'
+                        : 'Aqeedah, Fiqh (Shafi & Hanafi), Hadith, Seerah, and Islamic History.',
                   },
                   {
-                    id: 'fiqh',
+                    id: 'madrasa_education',
                     num: '03',
-                    label: t.admissions.fields.courseFiqh,
-                    desc: 'Islamic jurisprudence studies covering worship acts according to Shafi or Hanafi schools.',
+                    label: t.admissions.fields.courseMadrasaEducation,
+                    desc:
+                      language === 'ml'
+                        ? 'ദീനിയ്യാത്ത്, ഇസ്ലാമിക വിശ്വാസങ്ങൾ, ഫിഖ്ഹ്, ഹദീസ്, ദുആകൾ, ഇസ്ലാമിക മര്യാദകൾ.'
+                        : language === 'ur'
+                        ? 'دینیات، اسلامی عقائد، فقہ، احادیث، مسنون دعائیں اور اسلامی آداب۔'
+                        : 'Deeniyyat, Islamic Beliefs, Fiqh, Hadith, Duas, and Islamic Manners & Ethics.',
                   },
                   {
-                    id: 'madrasa',
+                    id: 'tarbiyah',
                     num: '04',
-                    label: t.admissions.fields.courseMadrasa,
-                    desc: 'Foundational Islamic studies covering Aqeedah, Akhlaq, Adhkar, and essential rulings.',
+                    label: t.admissions.fields.courseTarbiyah,
+                    desc:
+                      language === 'ml'
+                        ? 'അഖ്ലാഖ്, നാൽപ്പത് ഹദീസുകൾ, അസ്മാഉൽ ഹുസ്നാ, സുന്നത്ത്, കുടുംബ ഉത്തരവാദിത്വങ്ങൾ.'
+                        : language === 'ur'
+                        ? 'اخلاق، چالیس احادیث، اسمائے حسنیٰ، سنت اور خاندانی ذمہ داریاں۔'
+                        : 'Akhlaq, 40 Hadith, Asmaul Husna, Sunnah, and Family Responsibilities.',
+                  },
+                  {
+                    id: 'womens_education',
+                    num: '05',
+                    label: t.admissions.fields.courseWomensEducation,
+                    desc:
+                      language === 'ml'
+                        ? 'സ്ത്രീകളുടെ ഫിഖ്ഹ്, തഹാറത്ത്, നമസ്കാരം, ഖുർആൻ പഠനം, തജ്വീദ്, ഇസ്ലാമിക രക്ഷാകർതൃത്വം.'
+                        : language === 'ur'
+                        ? 'خواتین کا فقہ، طہارت، نماز، قرآنی تعلیم، تجوید اور اسلامی طرزِ تربیتِ اولاد۔'
+                        : 'Women’s Fiqh, Taharah, Salah, Qur’an Studies, Tajweed, and Islamic Parenting.',
+                  },
+                  {
+                    id: 'short_courses',
+                    num: '06',
+                    label: t.admissions.fields.courseShortCourses,
+                    desc:
+                      language === 'ml'
+                        ? 'നമസ്കാര പഠനം, ദൈനംദിന ദുആകൾ, റമളാനിലെ ഫിഖ്ഹ്, അടിസ്ഥാന അഖീദ, ചെറിയ സൂറത്തുകൾ.'
+                        : language === 'ur'
+                        ? 'طریقۂ نماز، مسنون دعائیں، فقہِ رمضان، بنیادی عقائد اور چھوٹی سورتوں کا حفظ۔'
+                        : 'Salah Learning, Daily Duas, Ramadan Fiqh, Basic Aqeedah, and Short Surahs.',
+                  },
+                  {
+                    id: 'ramadan_daurah',
+                    num: '07',
+                    label: t.admissions.fields.courseRamadanDaurah,
+                    desc:
+                      language === 'ml'
+                        ? 'റമളാൻ മാസത്തിൽ ഹാഫിളുകൾക്ക് ഉസ്താദിന്റെ മേൽനോട്ടത്തിൽ ഖുർആൻ ദൗറ നടത്താനുള്ള പ്രത്യേക പഠനപരിപാടി.'
+                        : language === 'ur'
+                        ? 'ماہِ رمضان میں حفاظِ کرام کے لیے اساتذہ کی زیرِ نگرانی قرآن مجید کے باقاعدہ دورے کا پروگرام۔'
+                        : 'Special Ramadan Qur’an Daurah for Huffaz under the supervision of a qualified Usthad.',
+                  },
+                  {
+                    id: 'khatmul_quran',
+                    num: '08',
+                    label: t.admissions.fields.courseKhatmulQuran,
+                    desc:
+                      language === 'ml'
+                        ? 'പരിചയസമ്പന്നനായ ഉസ്താദിന്റെ മേൽനോട്ടത്തിൽ സാധാരണക്കാർക്ക് ഖുർആൻ പൂർണമായി ഓതിത്തീർക്കാനുള്ള സൗകര്യം. പുരുഷന്മാർക്കും സ്ത്രീകൾക്കും പ്രത്യേകം ക്ലാസുകൾ.'
+                        : language === 'ur'
+                        ? 'تجربہ کار اساتذہ کی زیرِ نگرانی مکمل قرآنِ مجید دیکھ کر ختم کرنے کی سہولت۔ مردوں اور خواتین کے لیے الگ الگ کلاسز۔'
+                        : 'Complete recitation of the Holy Qur’an with an experienced Usthad. Dedicated separate classes for men and women.',
                   },
                 ].map((courseItem) => {
                   const isChecked = selectedCourse === courseItem.id;

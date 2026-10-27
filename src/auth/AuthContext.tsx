@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase';
+import { supabase, isSupabaseConfigured, supabaseConfigError } from '../lib/supabase';
 import { supabaseAuthService } from '../services/supabaseAuthService';
 import { supabaseProfileService } from '../services/supabaseProfileService';
 import { AuthContextType, UserProfile } from '../types/auth';
@@ -14,6 +14,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     let isMounted = true;
+
+    if (!isSupabaseConfigured) {
+      setLoading(false);
+      return;
+    }
 
     // Check initial session
     supabase.auth.getSession().then(async ({ data: { session } }) => {
@@ -72,13 +77,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setError(null);
     setLoading(true);
 
+    if (!isSupabaseConfigured) {
+      setLoading(false);
+      const msg = supabaseConfigError || 'Supabase integration is not configured.';
+      setError(msg);
+      throw new Error(msg);
+    }
+
     try {
       const user = await supabaseAuthService.signIn(email, pass);
       setCurrentUser(user);
 
       const profile = await supabaseProfileService.getUserProfile(user.id, user.email || email);
       if (!profile) {
-        throw new Error('Your account profile could not be verified. Please contact THEEN administration.');
+        throw new Error('Your account profile could not be verified in the database. Please contact THEEN administration.');
       }
 
       if (!profile.isActive) {
@@ -110,6 +122,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const resetPassword = async (email: string): Promise<void> => {
     setError(null);
+    if (!isSupabaseConfigured) {
+      throw new Error(supabaseConfigError || 'Supabase integration is not configured.');
+    }
     try {
       await supabaseAuthService.sendPasswordReset(email);
     } catch (err: any) {
@@ -119,7 +134,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const refreshProfile = async (): Promise<UserProfile | null> => {
-    if (currentUser) {
+    if (currentUser && isSupabaseConfigured) {
       const profile = await supabaseProfileService.getUserProfile(
         currentUser.id,
         currentUser.email || undefined

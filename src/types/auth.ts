@@ -1,4 +1,4 @@
-import { User as FirebaseUser } from 'firebase/auth';
+import { User as SupabaseUser } from '@supabase/supabase-js';
 
 export type UserRole = 'SUPER_ADMIN' | 'ADMIN' | 'TEACHER';
 
@@ -28,7 +28,7 @@ export interface UserProfile {
 }
 
 export interface AuthContextType {
-  currentUser: FirebaseUser | null;
+  currentUser: SupabaseUser | null;
   userProfile: UserProfile | null;
   loading: boolean;
   error: string | null;

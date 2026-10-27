@@ -25,8 +25,8 @@ export const TeacherDashboardPage: React.FC = () => {
   const { navigate } = useRouter();
   const { language } = useLanguage();
 
-  const teacherId = userProfile?.teacherId || 'MT001';
-  const teacherName = userProfile?.displayName || 'Faculty Member';
+  const teacherId = userProfile?.teacherId || '';
+  const teacherName = userProfile?.displayName || userProfile?.email || 'Faculty Member';
 
   const [students, setStudents] = useState<Student[]>([]);
   const [todayAttendance, setTodayAttendance] = useState<AttendanceRecord[]>([]);
@@ -74,9 +74,18 @@ export const TeacherDashboardPage: React.FC = () => {
     <TeacherLayout
       activeTab="dashboard"
       title={`Welcome, ${teacherName}`}
-      subtitle={`Faculty Portal • ID: ${teacherId} • ${formatKolkataDate(new Date())}`}
+      subtitle={`Faculty Portal • ID: ${teacherId || 'Unassigned'} • ${formatKolkataDate(new Date())}`}
     >
       <div className="space-y-8 text-start">
+        {!teacherId && (
+          <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900 text-amber-800 dark:text-amber-300 text-xs flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 shrink-0 text-amber-600" />
+            <div>
+              <p className="font-semibold">Unlinked Faculty Profile</p>
+              <p className="mt-0.5">Your user account is authenticated, but no Teacher ID has been assigned in the Supabase database. Please contact the THEEN administrator to link your profile.</p>
+            </div>
+          </div>
+        )}
         {/* Rapid Attendance Callout Banner */}
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#071A3D] to-[#0D244D] border border-[#C5A869]/40 p-6 sm:p-8 text-white shadow-lg">
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">

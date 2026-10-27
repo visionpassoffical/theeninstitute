@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useLanguage } from '../context/LanguageContext';
@@ -46,7 +46,7 @@ export const TeacherApplicationPage: React.FC = () => {
       experience: '',
       quranBackground: '',
       otherQualifications: '',
-      subjects: ['nazira'],
+      subjects: ['quran_studies'],
       languages: [language],
       preferredStudents: 'both',
       preferredTeachingTimes: '',
@@ -57,6 +57,8 @@ export const TeacherApplicationPage: React.FC = () => {
       consent: undefined as any,
     },
   });
+
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const selectedDob = watch('dateOfBirth');
   const selectedSubjects = watch('subjects') || [];
@@ -78,7 +80,7 @@ export const TeacherApplicationPage: React.FC = () => {
     }
   }, [selectedDob, setValue]);
 
-  const handleSubjectToggle = (subject: 'hifz' | 'nazira' | 'fiqh' | 'madrasa') => {
+  const handleSubjectToggle = (subject: string) => {
     const current = [...selectedSubjects];
     const index = current.indexOf(subject);
     if (index > -1) {
@@ -105,6 +107,7 @@ export const TeacherApplicationPage: React.FC = () => {
   };
 
   const onSubmit = async (data: TeacherFormValues) => {
+    setSubmitError(null);
     try {
       const savedApplication = await teacherService.submitApplication({
         fullName: data.fullName,
@@ -132,8 +135,9 @@ export const TeacherApplicationPage: React.FC = () => {
       });
 
       navigate('/teachers/application-success', { application: savedApplication });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Teacher application error:', error);
+      setSubmitError(error?.message || 'Failed to submit application. Please check your credentials and configuration.');
     }
   };
 
@@ -198,6 +202,11 @@ export const TeacherApplicationPage: React.FC = () => {
         {/* Form Container */}
         <div className="bg-white dark:bg-[#0B172B] rounded-2xl border border-[#E8E2D5] dark:border-[#1F3354] p-6 sm:p-10 shadow-lg text-start">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
+            {submitError && (
+              <div className="p-4 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-xs text-red-700 dark:text-red-300 leading-relaxed">
+                {submitError}
+              </div>
+            )}
             {/* ======================================================
                 SECTION A — PERSONAL INFORMATION
             ====================================================== */}
@@ -480,10 +489,14 @@ export const TeacherApplicationPage: React.FC = () => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {[
-                  { id: 'hifz', label: t.teacherApply.fields.subjectHifz },
-                  { id: 'nazira', label: t.teacherApply.fields.subjectNazira },
-                  { id: 'fiqh', label: t.teacherApply.fields.subjectFiqh },
-                  { id: 'madrasa', label: t.teacherApply.fields.subjectMadrasa },
+                  { id: 'quran_studies', label: t.teacherApply.fields.subjectQuranStudies },
+                  { id: 'islamic_studies', label: t.teacherApply.fields.subjectIslamicStudies },
+                  { id: 'madrasa_education', label: t.teacherApply.fields.subjectMadrasaEducation },
+                  { id: 'tarbiyah', label: t.teacherApply.fields.subjectTarbiyah },
+                  { id: 'womens_education', label: t.teacherApply.fields.subjectWomensEducation },
+                  { id: 'short_courses', label: t.teacherApply.fields.subjectShortCourses },
+                  { id: 'ramadan_daurah', label: t.teacherApply.fields.subjectRamadanDaurah },
+                  { id: 'khatmul_quran', label: t.teacherApply.fields.subjectKhatmulQuran },
                 ].map((item) => {
                   const isSelected = selectedSubjects.includes(item.id as any);
                   return (

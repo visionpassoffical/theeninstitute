@@ -49,7 +49,7 @@ export const createTeacherSchema = (validationMessages: Record<string, string>) 
     otherQualifications: z.string().optional(),
 
     subjects: z
-      .array(z.enum(['hifz', 'nazira', 'fiqh', 'madrasa']))
+      .array(z.string())
       .min(1, { message: validationMessages.subjects || 'Please select at least one teaching subject.' }),
 
     languages: z

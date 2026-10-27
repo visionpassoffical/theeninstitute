@@ -1,7 +1,6 @@
 import { AttendanceSubmissionPayload, EmailReportResult } from '../types/academic';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { formatKolkataTime } from '../utils/timezone';
-
-const STORAGE_EMAIL_LOGS_KEY = 'theen_attendance_email_logs';
 
 export const emailService = {
   /**
@@ -51,8 +50,7 @@ This is an automated attendance dispatch from THEEN Institute Faculty Portal.`;
 
   /**
    * Send attendance report to official THEEN administration email: theeninstitute@gmail.com
-   * Note: As per Section 21, if email sending fails, the caller receives a non-fatal status
-   * so that the UI states: "Attendance was saved, but the email report could not be sent."
+   * Sent via secure backend proxy route (/api/send-attendance-report) to avoid exposing secrets.
    */
   sendAttendanceReport: async (
     payload: AttendanceSubmissionPayload
@@ -79,17 +77,13 @@ This is an automated attendance dispatch from THEEN Institute Faculty Portal.`;
       });
 
       if (response.ok) {
-        const result = await response.json();
-        // Log in persistent log
-        emailService.logEmailDispatch({
+        // Record log to Supabase email_logs
+        await emailService.logEmailDispatch({
           logId: `LOG-${Date.now()}`,
-          attendanceDate: payload.date,
-          teacherId: payload.teacherId,
           recipient,
           subject,
-          recordsCount: payload.records.length,
           status: 'SENT',
-          sentAt: new Date().toISOString(),
+          teacherId: payload.teacherId,
         });
 
         return {
@@ -104,17 +98,12 @@ This is an automated attendance dispatch from THEEN Institute Faculty Portal.`;
     } catch (err: any) {
       console.warn('Attendance email dispatch notification:', err?.message || err);
 
-      // Log the failed attempt for audit & transparency
-      emailService.logEmailDispatch({
+      await emailService.logEmailDispatch({
         logId: `LOG-${Date.now()}`,
-        attendanceDate: payload.date,
-        teacherId: payload.teacherId,
         recipient,
         subject,
-        recordsCount: payload.records.length,
         status: 'FAILED',
-        sentAt: new Date().toISOString(),
-        error: err?.message || 'Email service unavailable',
+        teacherId: payload.teacherId,
       });
 
       return {
@@ -127,22 +116,42 @@ This is an automated attendance dispatch from THEEN Institute Faculty Portal.`;
   },
 
   /**
-   * Keep audit logs in local storage for administration inspection
+   * Log email dispatch directly to Supabase public.email_logs table
    */
-  logEmailDispatch: (log: any) => {
+  logEmailDispatch: async (log: {
+    logId: string;
+    recipient: string;
+    subject: string;
+    status: string;
+    teacherId?: string;
+  }) => {
+    if (!isSupabaseConfigured) return;
+
     try {
-      const logs = JSON.parse(localStorage.getItem(STORAGE_EMAIL_LOGS_KEY) || '[]');
-      logs.unshift(log);
-      // Keep last 50 logs
-      localStorage.setItem(STORAGE_EMAIL_LOGS_KEY, JSON.stringify(logs.slice(0, 50)));
-    } catch {
-      // Ignore
+      await supabase.from('email_logs').insert({
+        log_id: log.logId,
+        recipient: log.recipient,
+        subject: log.subject,
+        status: log.status,
+        teacher_id: log.teacherId || null,
+      });
+    } catch (err) {
+      console.warn('Supabase email log error:', err);
     }
   },
 
-  getEmailLogs: () => {
+  getEmailLogs: async () => {
+    if (!isSupabaseConfigured) return [];
+
     try {
-      return JSON.parse(localStorage.getItem(STORAGE_EMAIL_LOGS_KEY) || '[]');
+      const { data, error } = await supabase
+        .from('email_logs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+      return data || [];
     } catch {
       return [];
     }

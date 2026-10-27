@@ -1,9 +1,13 @@
-import { supabase } from '../lib/supabase';
+import { supabase, isSupabaseConfigured, supabaseConfigError } from '../lib/supabase';
 
 export const supabaseAuthService = {
   signIn: async (email: string, password: string) => {
+    if (!isSupabaseConfigured) {
+      throw new Error(supabaseConfigError || 'Supabase integration is not configured.');
+    }
+
     const { data, error } = await supabase.auth.signInWithPassword({
-      email,
+      email: email.trim(),
       password,
     });
     if (error) {
@@ -13,6 +17,8 @@ export const supabaseAuthService = {
   },
 
   signOutUser: async () => {
+    if (!isSupabaseConfigured) return;
+
     try {
       await supabase.auth.signOut();
     } catch (err) {
@@ -21,12 +27,19 @@ export const supabaseAuthService = {
   },
 
   sendPasswordReset: async (email: string) => {
+    if (!isSupabaseConfigured) {
+      throw new Error(supabaseConfigError || 'Supabase integration is not configured.');
+    }
+
     try {
-      await supabase.auth.resetPasswordForEmail(email, {
+      const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
         redirectTo: window.location.origin,
       });
+      if (error) {
+        throw error;
+      }
     } catch (err: any) {
-      throw new Error('Unable to process password reset.');
+      throw new Error(err?.message || 'Unable to process password reset.');
     }
   },
 
@@ -38,6 +51,6 @@ export const supabaseAuthService = {
     if (lower.includes('email not confirmed')) {
       return 'Please confirm your email address before signing in.';
     }
-    return 'Unable to sign in. Please verify your credentials.';
+    return message || 'Unable to sign in. Please verify your credentials.';
   },
 };

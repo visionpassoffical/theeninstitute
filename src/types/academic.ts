@@ -2,7 +2,19 @@ export type AttendanceStatus = 'PRESENT' | 'ABSENT';
 
 export type ProgressStatus = 'ON_TRACK' | 'NEEDS_ATTENTION' | 'COMPLETED';
 
-export type CourseType = 'hifz' | 'nazira' | 'fiqh' | 'madrasa';
+export type CourseType =
+  | 'quran_studies'
+  | 'islamic_studies'
+  | 'madrasa_education'
+  | 'tarbiyah'
+  | 'womens_education'
+  | 'short_courses'
+  | 'ramadan_daurah'
+  | 'khatmul_quran'
+  | 'hifz'
+  | 'nazira'
+  | 'fiqh'
+  | 'madrasa';
 export type ClassType = 'group' | 'individual';
 export type ClassLanguage = 'ml' | 'en' | 'ur';
 

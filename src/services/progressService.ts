@@ -1,104 +1,136 @@
 import { StudentProgressRecord, ProgressStatus, CourseType } from '../types/academic';
-
-const STORAGE_PROGRESS_KEY = 'theen_academic_student_progress';
-
-const INITIAL_PROGRESS: StudentProgressRecord[] = [
-  {
-    progressId: 'PROG-1001-1',
-    studentId: 'STU-1001',
-    studentName: 'Muhammad Rayan',
-    teacherId: 'MT001',
-    course: 'hifz',
-    lesson: 'Surah Al-Mulk (Ayah 1-15) revision & Ayah 16-20 new memorization',
-    homework: 'Memorize next 5 ayahs with exact makharij rules',
-    remarks: 'MashaAllah fluent memorization and good adherence to Ghunnah rules.',
-    progressStatus: 'ON_TRACK',
-    createdAt: '2026-10-02T10:30:00.000Z',
-    updatedAt: '2026-10-02T10:30:00.000Z',
-    updatedBy: 'Usthad Abdul Rahman',
-  },
-  {
-    progressId: 'PROG-1002-1',
-    studentId: 'STU-1002',
-    studentName: 'Bilal Ahmed',
-    teacherId: 'MT001',
-    course: 'hifz',
-    lesson: 'Juz Amma (Surah An-Naba Ayah 1-20)',
-    homework: 'Repeat Ayah 1-10 three times with audio recording practice',
-    remarks: 'Needs extra attention on Madd letters timing (2 Harakat).',
-    progressStatus: 'NEEDS_ATTENTION',
-    createdAt: '2026-10-01T10:45:00.000Z',
-    updatedAt: '2026-10-01T10:45:00.000Z',
-    updatedBy: 'Usthad Abdul Rahman',
-  },
-  {
-    progressId: 'PROG-2001-1',
-    studentId: 'STU-2001',
-    studentName: 'Amina Fathima',
-    teacherId: 'FT001',
-    course: 'nazira',
-    lesson: 'Qur’an Page 45 (Surah Al-Baqarah Ayah 260-264)',
-    homework: 'Read next 2 pages focusing on Ikhfaa rules',
-    remarks: 'Excellent Tajweed and clear pronunciation.',
-    progressStatus: 'ON_TRACK',
-    createdAt: '2026-10-02T11:30:00.000Z',
-    updatedAt: '2026-10-02T11:30:00.000Z',
-    updatedBy: 'Mu’allima Fathima Zahra',
-  },
-];
+import { supabase, isSupabaseConfigured, supabaseConfigError } from '../lib/supabase';
 
 export const progressService = {
-  initStore: () => {
-    try {
-      if (!localStorage.getItem(STORAGE_PROGRESS_KEY)) {
-        localStorage.setItem(STORAGE_PROGRESS_KEY, JSON.stringify(INITIAL_PROGRESS));
-      }
-    } catch {
-      // Ignore
-    }
-  },
-
   /**
-   * Get all progress records created by this teacher for assigned students
+   * Get all progress records created by this teacher for assigned students from Supabase
    */
   getProgressForTeacher: async (teacherId: string): Promise<StudentProgressRecord[]> => {
-    progressService.initStore();
+    if (!isSupabaseConfigured || !teacherId) {
+      return [];
+    }
+
     try {
-      const all: StudentProgressRecord[] = JSON.parse(
-        localStorage.getItem(STORAGE_PROGRESS_KEY) || '[]'
-      );
-      return all
-        .filter((p) => p.teacherId === teacherId)
-        .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
-    } catch {
-      return INITIAL_PROGRESS.filter((p) => p.teacherId === teacherId);
+      const { data, error } = await supabase
+        .from('student_progress')
+        .select('*')
+        .eq('teacher_id', teacherId)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching progress from Supabase:', error);
+        return [];
+      }
+
+      return (data || []).map((row: any) => ({
+        progressId: row.progress_id,
+        studentId: row.student_id,
+        studentName: row.student_name || '',
+        teacherId: row.teacher_id,
+        course: row.course as CourseType,
+        lesson: row.lesson,
+        homework: row.homework || '',
+        remarks: row.remarks || '',
+        progressStatus: row.progress_status as ProgressStatus,
+        createdAt: row.created_at,
+        updatedAt: row.created_at,
+        updatedBy: row.updated_by || '',
+      }));
+    } catch (err) {
+      console.error('Progress fetch failed:', err);
+      return [];
     }
   },
 
   /**
-   * Get progress history for a specific student
+   * Get progress history for a specific student from Supabase
    */
   getProgressForStudent: async (
     teacherId: string,
     studentId: string
   ): Promise<StudentProgressRecord[]> => {
-    const list = await progressService.getProgressForTeacher(teacherId);
-    return list.filter((p) => p.studentId === studentId);
+    if (!isSupabaseConfigured || !teacherId || !studentId) {
+      return [];
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('student_progress')
+        .select('*')
+        .eq('teacher_id', teacherId)
+        .eq('student_id', studentId)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching student progress from Supabase:', error);
+        return [];
+      }
+
+      return (data || []).map((row: any) => ({
+        progressId: row.progress_id,
+        studentId: row.student_id,
+        studentName: row.student_name || '',
+        teacherId: row.teacher_id,
+        course: row.course as CourseType,
+        lesson: row.lesson,
+        homework: row.homework || '',
+        remarks: row.remarks || '',
+        progressStatus: row.progress_status as ProgressStatus,
+        createdAt: row.created_at,
+        updatedAt: row.created_at,
+        updatedBy: row.updated_by || '',
+      }));
+    } catch {
+      return [];
+    }
   },
 
   /**
-   * Get latest progress status for a student
+   * Get latest progress record for a student from Supabase
    */
   getLatestProgressForStudent: async (
     teacherId: string,
     studentId: string
   ): Promise<StudentProgressRecord | null> => {
-    const history = await progressService.getProgressForStudent(teacherId, studentId);
-    return history.length > 0 ? history[0] : null;
+    if (!isSupabaseConfigured || !teacherId || !studentId) {
+      return null;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('student_progress')
+        .select('*')
+        .eq('teacher_id', teacherId)
+        .eq('student_id', studentId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error || !data) {
+        return null;
+      }
+
+      return {
+        progressId: data.progress_id,
+        studentId: data.student_id,
+        studentName: data.student_name || '',
+        teacherId: data.teacher_id,
+        course: data.course as CourseType,
+        lesson: data.lesson,
+        homework: data.homework || '',
+        remarks: data.remarks || '',
+        progressStatus: data.progress_status as ProgressStatus,
+        createdAt: data.created_at,
+        updatedAt: data.created_at,
+        updatedBy: data.updated_by || '',
+      };
+    } catch {
+      return null;
+    }
   },
 
   /**
-   * Save or update progress entry
+   * Save progress entry directly to Supabase public.student_progress table
    */
   saveProgress: async (data: {
     studentId: string;
@@ -111,15 +143,34 @@ export const progressService = {
     progressStatus: ProgressStatus;
     updatedBy: string;
   }): Promise<StudentProgressRecord> => {
-    progressService.initStore();
-    const all: StudentProgressRecord[] = JSON.parse(
-      localStorage.getItem(STORAGE_PROGRESS_KEY) || '[]'
-    );
+    if (!isSupabaseConfigured) {
+      throw new Error(supabaseConfigError || 'Supabase integration is not configured.');
+    }
 
-    const now = new Date().toISOString();
     const progressId = `PROG-${data.studentId.replace('STU-', '')}-${Date.now().toString().slice(-4)}`;
+    const now = new Date().toISOString();
 
-    const newRecord: StudentProgressRecord = {
+    const insertPayload = {
+      progress_id: progressId,
+      student_id: data.studentId,
+      student_name: data.studentName,
+      teacher_id: data.teacherId,
+      course: data.course,
+      lesson: data.lesson.trim(),
+      homework: data.homework.trim(),
+      remarks: data.remarks.trim(),
+      progress_status: data.progressStatus,
+      updated_by: data.updatedBy,
+    };
+
+    const { error } = await supabase.from('student_progress').insert(insertPayload);
+
+    if (error) {
+      console.error('Supabase progress save error:', error);
+      throw new Error(error.message || 'Failed to save student progress to Supabase.');
+    }
+
+    return {
       progressId,
       studentId: data.studentId,
       studentName: data.studentName,
@@ -133,15 +184,5 @@ export const progressService = {
       updatedAt: now,
       updatedBy: data.updatedBy,
     };
-
-    all.unshift(newRecord);
-
-    try {
-      localStorage.setItem(STORAGE_PROGRESS_KEY, JSON.stringify(all));
-    } catch (err) {
-      console.warn('Progress storage write warning:', err);
-    }
-
-    return newRecord;
   },
 };

@@ -23,8 +23,8 @@ export const TeacherProgressPage: React.FC = () => {
   const { userProfile } = useAuth();
   const { language } = useLanguage();
 
-  const teacherId = userProfile?.teacherId || 'MT001';
-  const teacherName = userProfile?.displayName || 'Faculty Member';
+  const teacherId = userProfile?.teacherId || '';
+  const teacherName = userProfile?.displayName || userProfile?.email || 'Faculty Member';
 
   const [students, setStudents] = useState<Student[]>([]);
   const [progressList, setProgressList] = useState<StudentProgressRecord[]>([]);

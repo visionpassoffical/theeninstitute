@@ -46,10 +46,14 @@ export const Footer: React.FC = () => {
   ];
 
   const programLinks = [
-    { href: '#courses', label: '01 — HIFZ (Memorization)' },
-    { href: '#courses', label: '02 — NAZIRA (Tajweed & Recitation)' },
-    { href: '#courses', label: '03 — FIQH (Shafi & Hanafi)' },
-    { href: '#courses', label: '04 — MADRASA (Islamic Studies)' },
+    { href: '#courses', label: language === 'ml' ? '01 — ഖുർആൻ പഠനം (Qur’an Studies)' : language === 'ur' ? '۰۱ — قرآنی علوم و مطالعہ' : '01 — Qur’an Studies (ഖുർആൻ പഠനം)' },
+    { href: '#courses', label: language === 'ml' ? '02 — ഇസ്ലാമിക പഠനം (Islamic Studies)' : language === 'ur' ? '۰۲ — اسلامک اسٹڈیز' : '02 — Islamic Studies (ഇസ്ലാമിക പഠനം)' },
+    { href: '#courses', label: language === 'ml' ? '03 — മദ്റസാ വിദ്യാഭ്യാസം (Madrasa Education)' : language === 'ur' ? '۰۳ — مدرسہ ایجوکیشن' : '03 — Madrasa Education (മദ്റസാ വിദ്യാഭ്യാസം)' },
+    { href: '#courses', label: language === 'ml' ? '04 — തർബിയ്യത്ത് (Tarbiyah & Character)' : language === 'ur' ? '۰۴ — تربیت و اخلاق' : '04 — Tarbiyah & Character Building (തർബിയ്യത്ത്)' },
+    { href: '#courses', label: language === 'ml' ? '05 — വനിതാ ഇസ്ലാമിക പഠനം (Women’s Education)' : language === 'ur' ? '۰۵ — خواتین کی تعلیم' : '05 — Women’s Islamic Education (വനിതാ പഠനം)' },
+    { href: '#courses', label: language === 'ml' ? '06 — ഹ്രസ്വകാല കോഴ്സുകൾ (Short Courses)' : language === 'ur' ? '۰۶ — مختصر کورسز' : '06 — Short Courses (ഹ്രസ്വകാല കോഴ്സുകൾ)' },
+    { href: '#courses', label: language === 'ml' ? '07 — റമളാനിലെ ഹാഫിളീങ്ങൾക്കുള്ള ദൗറ (Ramadan Daurah)' : language === 'ur' ? '۰۷ — رمضان دورہ برائے حفاظ' : '07 — Ramadan Daurah for Huffaz (റമളാൻ ദൗറ)' },
+    { href: '#courses', label: language === 'ml' ? '08 — ഖതമുൽ ഖുർആൻ പ്രോഗ്രാം (Khatmul Qur’an)' : language === 'ur' ? '۰۸ — ختمِ قرآن پروگرام' : '08 — Khatmul Qur’an Programme (ഖതമുൽ ഖുർആൻ പ്രോഗ്രാം)' },
   ];
 
   return (

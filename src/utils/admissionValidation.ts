@@ -44,9 +44,25 @@ export const createAdmissionSchema = (validationMessages: Record<string, string>
       guardianWhatsapp: z.string().optional(),
       guardianRelationship: z.string().optional(),
 
-      course: z.enum(['hifz', 'nazira', 'fiqh', 'madrasa'], {
-        message: validationMessages.course || 'Please select a course.',
-      }),
+      course: z.enum(
+        [
+          'quran_studies',
+          'islamic_studies',
+          'madrasa_education',
+          'tarbiyah',
+          'womens_education',
+          'short_courses',
+          'ramadan_daurah',
+          'khatmul_quran',
+          'hifz',
+          'nazira',
+          'fiqh',
+          'madrasa',
+        ],
+        {
+          message: validationMessages.course || 'Please select a course.',
+        }
+      ),
       classType: z.enum(['group', 'individual'], {
         message: validationMessages.classType || 'Please select a class format.',
       }),
