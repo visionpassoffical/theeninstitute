@@ -4,24 +4,60 @@ import { UserProfile, UserRole } from '../types/auth';
 export const supabaseProfileService = {
   /**
    * Fetch authenticated user's role and verified profile strictly from Supabase public.profiles table.
-   * No fake role fallbacks or offline email parsing are permitted.
+   * Throws informative, safe errors to distinguish authentication, RLS policy recursion, permission, and missing row errors.
    */
-  getUserProfile: async (uid: string, email?: string): Promise<UserProfile | null> => {
+  getUserProfile: async (uid: string, email?: string): Promise<UserProfile> => {
     if (!isSupabaseConfigured) {
-      console.warn(supabaseConfigError);
-      return null;
+      throw new Error(
+        supabaseConfigError ||
+          'Supabase integration credentials are not configured in environment variables (VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY).'
+      );
+    }
+
+    if (!uid) {
+      throw new Error('Invalid user ID provided for profile verification.');
     }
 
     try {
+      // Use maybeSingle to prevent generic PGRST116 errors and expose real database errors (e.g. 42P17 recursion)
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', uid)
-        .single();
+        .maybeSingle();
 
-      if (error || !data) {
-        console.warn('No database profile found for user:', uid, error?.message);
-        return null;
+      if (error) {
+        console.error('Supabase profile query database error:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+        });
+
+        // 1. Infinite recursion detection in RLS policies (PostgreSQL code 42P17)
+        if (error.code === '42P17' || error.message?.toLowerCase().includes('infinite recursion')) {
+          throw new Error(
+            'Database Policy Recursion Error (42P17): The "profiles" table Row-Level Security policy contains a recursive helper function call. Please execute the non-recursive RLS migration in your Supabase SQL Editor.'
+          );
+        }
+
+        // 2. Permission denied (PostgreSQL code 42501)
+        if (error.code === '42501' || error.message?.toLowerCase().includes('permission denied')) {
+          throw new Error(
+            `Database Permission Denied (42501): RLS policy prevented loading the profile for UID ${uid}. Verify that authenticated users have SELECT permission on their own profile row.`
+          );
+        }
+
+        // 3. Other database errors
+        throw new Error(
+          `Database error verifying profile: ${error.message} (Code: ${error.code || 'UNKNOWN'}).`
+        );
+      }
+
+      if (!data) {
+        throw new Error(
+          `No profile record found in the "profiles" table for user ID: ${uid} (${email || 'unknown email'}). Please ensure a corresponding row exists in public.profiles.`
+        );
       }
 
       const profile: UserProfile = {
@@ -48,9 +84,13 @@ export const supabaseProfileService = {
       };
 
       return profile;
-    } catch (err) {
-      console.error('Supabase profile query failed:', err);
-      return null;
+    } catch (err: any) {
+      if (err.message) {
+        throw err;
+      }
+      throw new Error(
+        'An unexpected error occurred while verifying your account profile in the database.'
+      );
     }
   },
 };

@@ -10,10 +10,15 @@ export const supabaseAuthService = {
       email: email.trim(),
       password,
     });
+
     if (error) {
       throw new Error(supabaseAuthService.getHumanFriendlyError(error.message));
     }
-    return data.user;
+
+    return {
+      user: data.user,
+      session: data.session,
+    };
   },
 
   signOutUser: async () => {

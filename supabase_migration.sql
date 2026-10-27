@@ -256,48 +256,63 @@ CREATE TRIGGER enforce_batch_capacity_trigger
     FOR EACH ROW
     EXECUTE FUNCTION public.check_batch_capacity();
 
--- Helper function to check if current user is admin (recursion-safe)
+-- Helper function to check if current user is admin (recursion-safe, verifies database record)
 CREATE OR REPLACE FUNCTION public.is_admin()
 RETURNS BOOLEAN AS $$
+DECLARE
+  v_role TEXT;
+  v_active BOOLEAN;
 BEGIN
-  RETURN (
-    auth.jwt() ->> 'email' = 'theeninstitute@gmail.com' OR
-    EXISTS (
-      SELECT 1 FROM public.profiles p
-      WHERE p.id = auth.uid()
-        AND p.role IN ('SUPER_ADMIN', 'ADMIN')
-        AND p.is_active = true
-    )
-  );
+  -- If unauthenticated, return false
+  IF auth.uid() IS NULL THEN
+    RETURN false;
+  END IF;
+
+  -- Query profiles for current authenticated user
+  -- Because profiles SELECT policy is 'id = auth.uid()', this never triggers recursion
+  SELECT p.role, p.is_active INTO v_role, v_active
+  FROM public.profiles p
+  WHERE p.id = auth.uid();
+
+  RETURN (v_role IN ('SUPER_ADMIN', 'ADMIN') AND v_active = true);
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
 
 -- Helper function to check if current user is super admin
 CREATE OR REPLACE FUNCTION public.is_super_admin()
 RETURNS BOOLEAN AS $$
+DECLARE
+  v_role TEXT;
+  v_active BOOLEAN;
 BEGIN
-  RETURN (
-    auth.jwt() ->> 'email' = 'theeninstitute@gmail.com' OR
-    EXISTS (
-      SELECT 1 FROM public.profiles p
-      WHERE p.id = auth.uid()
-        AND p.role = 'SUPER_ADMIN'
-        AND p.is_active = true
-    )
-  );
+  IF auth.uid() IS NULL THEN
+    RETURN false;
+  END IF;
+
+  SELECT p.role, p.is_active INTO v_role, v_active
+  FROM public.profiles p
+  WHERE p.id = auth.uid();
+
+  RETURN (v_role = 'SUPER_ADMIN' AND v_active = true);
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
 
 -- Helper function to check if current user is teacher
 CREATE OR REPLACE FUNCTION public.is_teacher()
 RETURNS BOOLEAN AS $$
+DECLARE
+  v_role TEXT;
+  v_active BOOLEAN;
 BEGIN
-  RETURN EXISTS (
-    SELECT 1 FROM public.profiles p
-    WHERE p.id = auth.uid()
-      AND p.role = 'TEACHER'
-      AND p.is_active = true
-  );
+  IF auth.uid() IS NULL THEN
+    RETURN false;
+  END IF;
+
+  SELECT p.role, p.is_active INTO v_role, v_active
+  FROM public.profiles p
+  WHERE p.id = auth.uid();
+
+  RETURN (v_role = 'TEACHER' AND v_active = true);
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
 
@@ -307,7 +322,11 @@ RETURNS TEXT AS $$
 DECLARE
   t_id TEXT;
 BEGIN
-  SELECT teacher_id INTO t_id FROM public.profiles WHERE id = auth.uid();
+  IF auth.uid() IS NULL THEN
+    RETURN NULL;
+  END IF;
+
+  SELECT p.teacher_id INTO t_id FROM public.profiles p WHERE p.id = auth.uid();
   RETURN t_id;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
@@ -316,23 +335,19 @@ $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
 CREATE OR REPLACE FUNCTION public.prevent_privilege_escalation()
 RETURNS TRIGGER AS $$
 BEGIN
-  -- If current user is admin or super admin, allow all changes
-  IF public.is_admin() THEN
-    RETURN NEW;
+  -- Prevent changing security-sensitive fields unless user is already verified active SUPER_ADMIN
+  IF (NEW.role IS DISTINCT FROM OLD.role OR
+      NEW.is_active IS DISTINCT FROM OLD.is_active OR
+      NEW.teacher_id IS DISTINCT FROM OLD.teacher_id OR
+      NEW.permissions IS DISTINCT FROM OLD.permissions OR
+      NEW.email IS DISTINCT FROM OLD.email) THEN
+
+    IF NOT (public.is_super_admin()) THEN
+      RAISE EXCEPTION 'Privilege escalation rejected: Only an active SUPER_ADMIN can modify account roles, permissions, or activation status.';
+    END IF;
   END IF;
 
-  -- If regular user updating their own profile (id = auth.uid())
-  IF auth.uid() = NEW.id THEN
-    -- Prevent changing security-sensitive columns
-    NEW.role := OLD.role;
-    NEW.is_active := OLD.is_active;
-    NEW.permissions := OLD.permissions;
-    NEW.teacher_id := OLD.teacher_id;
-    NEW.email := OLD.email;
-    RETURN NEW;
-  END IF;
-
-  RAISE EXCEPTION 'Permission denied to modify profile.';
+  RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;
 
@@ -383,18 +398,37 @@ ALTER TABLE public.email_logs ENABLE ROW LEVEL SECURITY;
 -- RLS POLICIES (SECURE & PRIVILEGE-ESCALATION FREE)
 -- ============================================================================
 
--- Profiles Policies: Clean, non-recursive SELECT and ALL policies
+-- Profiles Policies: Completely Non-Recursive (Zero helper function calls in profiles RLS)
 DROP POLICY IF EXISTS "Users can read own profile or admin reads all" ON public.profiles;
 DROP POLICY IF EXISTS "Admins can insert/update profiles" ON public.profiles;
 DROP POLICY IF EXISTS "Admins can manage profiles" ON public.profiles;
+DROP POLICY IF EXISTS "Users can read own profile" ON public.profiles;
+DROP POLICY IF EXISTS "Admins can insert profiles" ON public.profiles;
+DROP POLICY IF EXISTS "Admins or owners can update profiles" ON public.profiles;
+DROP POLICY IF EXISTS "Users or admins can update profiles" ON public.profiles;
+DROP POLICY IF EXISTS "Users or admins can insert profile" ON public.profiles;
+DROP POLICY IF EXISTS "Admins can delete profiles" ON public.profiles;
+DROP POLICY IF EXISTS "Users can insert own profile" ON public.profiles;
+DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
 
-CREATE POLICY "Users can read own profile or admin reads all" ON public.profiles
-    FOR SELECT USING (id = auth.uid() OR public.is_admin());
+-- 1. SELECT: Users can only read their own profile row (Zero recursion, safe for is_admin())
+CREATE POLICY "Users can read own profile" ON public.profiles
+    FOR SELECT
+    TO authenticated
+    USING (id = auth.uid());
 
-CREATE POLICY "Admins can manage profiles" ON public.profiles
-    FOR ALL 
-    USING (public.is_admin())
-    WITH CHECK (public.is_admin());
+-- 2. INSERT: Authenticated users can insert their own profile row during initial registration
+CREATE POLICY "Users can insert own profile" ON public.profiles
+    FOR INSERT
+    TO authenticated
+    WITH CHECK (id = auth.uid());
+
+-- 3. UPDATE: Users can update their own profile row (Trigger strictly blocks role/privilege escalation)
+CREATE POLICY "Users can update own profile" ON public.profiles
+    FOR UPDATE
+    TO authenticated
+    USING (id = auth.uid())
+    WITH CHECK (id = auth.uid());
 
 -- Admissions Policies
 DROP POLICY IF EXISTS "Public can submit admissions" ON public.admissions;

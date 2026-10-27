@@ -31,8 +31,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             session.user.email || undefined
           );
           setUserProfile(profile);
-        } catch (err) {
-          console.warn('Profile load error:', err);
+        } catch (err: any) {
+          console.warn('Initial session profile load notice:', err?.message || err);
           setUserProfile(null);
         }
       } else {
@@ -56,8 +56,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             session.user.email || undefined
           );
           setUserProfile(profile);
-        } catch (err) {
-          console.warn('Profile auth change error:', err);
+        } catch (err: any) {
+          console.warn('Auth state change profile load notice:', err?.message || err);
           setUserProfile(null);
         }
       } else {
@@ -79,18 +79,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     if (!isSupabaseConfigured) {
       setLoading(false);
-      const msg = supabaseConfigError || 'Supabase integration is not configured.';
+      const msg =
+        supabaseConfigError ||
+        'Supabase integration credentials are not configured in environment variables.';
       setError(msg);
       throw new Error(msg);
     }
 
     try {
-      const user = await supabaseAuthService.signIn(email, pass);
+      // 1. Sign in with Supabase Auth
+      const { user } = await supabaseAuthService.signIn(email, pass);
       setCurrentUser(user);
 
-      const profile = await supabaseProfileService.getUserProfile(user.id, user.email || email);
-      if (!profile) {
-        throw new Error('Your account profile could not be verified in the database. Please contact THEEN administration.');
+      // 2. Fetch and verify database profile
+      let profile: UserProfile;
+      try {
+        profile = await supabaseProfileService.getUserProfile(user.id, user.email || email);
+      } catch (profileErr: any) {
+        // Expose the precise cause (e.g. 42P17 recursion, missing profile row, or permission denied)
+        throw new Error(
+          profileErr.message ||
+            'Your account profile could not be verified in the database. Please contact THEEN administration.'
+        );
       }
 
       if (!profile.isActive) {
@@ -135,12 +145,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const refreshProfile = async (): Promise<UserProfile | null> => {
     if (currentUser && isSupabaseConfigured) {
-      const profile = await supabaseProfileService.getUserProfile(
-        currentUser.id,
-        currentUser.email || undefined
-      );
-      setUserProfile(profile);
-      return profile;
+      try {
+        const profile = await supabaseProfileService.getUserProfile(
+          currentUser.id,
+          currentUser.email || undefined
+        );
+        setUserProfile(profile);
+        return profile;
+      } catch (err: any) {
+        console.warn('Profile refresh notice:', err?.message || err);
+        return null;
+      }
     }
     return null;
   };
