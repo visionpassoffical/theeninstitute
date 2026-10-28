@@ -379,6 +379,31 @@ REVOKE EXECUTE ON FUNCTION public.prevent_privilege_escalation() FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.prevent_privilege_escalation() TO authenticated, service_role;
 
 -- ============================================================================
+-- SQL PRIVILEGES & TABLE GRANTS (PREVENTS 42501 INSUFFICIENT PRIVILEGE)
+-- ============================================================================
+GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
+
+-- Grant table privileges to authenticated users & service role (RLS policies govern row access)
+GRANT ALL ON TABLE public.profiles TO authenticated, service_role;
+GRANT SELECT ON TABLE public.profiles TO anon;
+
+GRANT ALL ON TABLE public.admissions TO authenticated, service_role;
+GRANT SELECT, INSERT ON TABLE public.admissions TO anon;
+
+GRANT ALL ON TABLE public.teacher_applications TO authenticated, service_role;
+GRANT SELECT, INSERT ON TABLE public.teacher_applications TO anon;
+
+GRANT ALL ON TABLE public.students TO authenticated, service_role;
+GRANT ALL ON TABLE public.teachers TO authenticated, service_role;
+GRANT ALL ON TABLE public.batches TO authenticated, service_role;
+GRANT ALL ON TABLE public.attendance TO authenticated, service_role;
+GRANT ALL ON TABLE public.student_progress TO authenticated, service_role;
+GRANT ALL ON TABLE public.payments TO authenticated, service_role;
+GRANT ALL ON TABLE public.salary_records TO authenticated, service_role;
+GRANT ALL ON TABLE public.settings TO authenticated, service_role;
+GRANT ALL ON TABLE public.email_logs TO authenticated, service_role;
+
+-- ============================================================================
 -- ROW LEVEL SECURITY (RLS) ENABLEMENT
 -- ============================================================================
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
@@ -411,10 +436,10 @@ DROP POLICY IF EXISTS "Admins can delete profiles" ON public.profiles;
 DROP POLICY IF EXISTS "Users can insert own profile" ON public.profiles;
 DROP POLICY IF EXISTS "Users can update own profile" ON public.profiles;
 
--- 1. SELECT: Users can only read their own profile row (Zero recursion, safe for is_admin())
+-- 1. SELECT: Users can only read their own profile row (Both authenticated and anon safe)
 CREATE POLICY "Users can read own profile" ON public.profiles
     FOR SELECT
-    TO authenticated
+    TO authenticated, anon
     USING (id = auth.uid());
 
 -- 2. INSERT: Authenticated users can insert their own profile row during initial registration

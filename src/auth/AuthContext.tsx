@@ -88,10 +88,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     try {
       // 1. Sign in with Supabase Auth
-      const { user } = await supabaseAuthService.signIn(email, pass);
+      const { user, session } = await supabaseAuthService.signIn(email, pass);
+
+      // 2. Ensure session is confirmed and active on Supabase client before querying database
+      let activeSession: any = session;
+      if (!activeSession || !activeSession.access_token) {
+        const { data: sessionData } = await supabase.auth.getSession();
+        activeSession = sessionData?.session;
+      }
+
+      if (!activeSession) {
+        throw new Error('Authentication session could not be established. Please try logging in again.');
+      }
+
       setCurrentUser(user);
 
-      // 2. Fetch and verify database profile
+      // 3. Fetch and verify database profile
       let profile: UserProfile;
       try {
         profile = await supabaseProfileService.getUserProfile(user.id, user.email || email);

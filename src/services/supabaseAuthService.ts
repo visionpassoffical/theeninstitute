@@ -15,6 +15,10 @@ export const supabaseAuthService = {
       throw new Error(supabaseAuthService.getHumanFriendlyError(error.message));
     }
 
+    if (!data.user || !data.session) {
+      throw new Error('Authentication failed: No active session was returned by Supabase.');
+    }
+
     return {
       user: data.user,
       session: data.session,
