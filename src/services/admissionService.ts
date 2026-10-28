@@ -1,5 +1,6 @@
 import { AdmissionApplication } from '../types';
 import { supabase, isSupabaseConfigured, supabaseConfigError } from '../lib/supabase';
+import { emailService } from './emailService';
 
 export const admissionService = {
   /**
@@ -58,6 +59,11 @@ export const admissionService = {
       status: 'PENDING',
       submittedAt,
     };
+
+    // Trigger email notification to theeninstitute@gmail.com asynchronously
+    emailService.sendAdmissionNotification(newApplication).catch((emailErr) => {
+      console.warn('Background admission email notification warning:', emailErr);
+    });
 
     return newApplication;
   },

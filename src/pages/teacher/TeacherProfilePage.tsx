@@ -191,14 +191,26 @@ export const TeacherProfilePage: React.FC = () => {
                   Approved Subject Disciplines
                 </span>
                 <div className="flex flex-wrap gap-2 pt-1">
-                  {(profile?.subjects || ['quran_studies', 'islamic_studies']).map((sub) => (
-                    <span
-                      key={sub}
-                      className="px-2.5 py-1 rounded bg-[#071A3D] text-[#C5A869] dark:bg-[#C5A869]/20 font-bold uppercase text-[10px]"
-                    >
-                      {sub.replace(/_/g, ' ')}
-                    </span>
-                  ))}
+                  {(profile?.subjects || ['quran_studies', 'islamic_studies']).map((sub) => {
+                    const subjectLabels: Record<string, string> = {
+                      quran_studies: 'Qur’an Studies',
+                      islamic_studies: 'Islamic Studies',
+                      madrasa_education: 'Madrasa Education',
+                      tarbiyah: 'Tarbiyah & Character Building',
+                      womens_education: 'Women’s Islamic Education',
+                      short_courses: 'Short Courses',
+                      ramadan_daurah: 'Ramadan Daurah for Huffaz',
+                      khatmul_quran: 'Khatmul Qur’an',
+                    };
+                    return (
+                      <span
+                        key={sub}
+                        className="px-2.5 py-1 rounded bg-[#071A3D] text-[#C5A869] dark:bg-[#C5A869]/20 font-bold text-[11px]"
+                      >
+                        {subjectLabels[sub] || sub.replace(/_/g, ' ')}
+                      </span>
+                    );
+                  })}
                 </div>
               </div>
             </div>

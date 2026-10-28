@@ -4,7 +4,7 @@ import { useRouter } from '../context/RouterContext';
 import { useLanguage } from '../context/LanguageContext';
 import { adminService } from '../services/adminService';
 import { AdmissionApplication } from '../types';
-import { Student, TeacherProfileData } from '../types/academic';
+import { Student, TeacherProfileData, CourseType } from '../types/academic';
 import {
   ShieldCheck,
   LogOut,
@@ -31,6 +31,37 @@ import {
   Calendar,
   Globe,
 } from 'lucide-react';
+
+export const TEACHER_SUBJECT_OPTIONS: { id: CourseType; label: string }[] = [
+  { id: 'quran_studies', label: 'Qur’an Studies' },
+  { id: 'islamic_studies', label: 'Islamic Studies' },
+  { id: 'madrasa_education', label: 'Madrasa Education' },
+  { id: 'tarbiyah', label: 'Tarbiyah & Character Building' },
+  { id: 'womens_education', label: 'Women’s Islamic Education' },
+  { id: 'short_courses', label: 'Short Courses' },
+  { id: 'ramadan_daurah', label: 'Ramadan Daurah for Huffaz' },
+  { id: 'khatmul_quran', label: 'Khatmul Qur’an' },
+];
+
+export const TEACHER_SUBJECT_LABELS: Record<string, string> = {
+  quran_studies: 'Qur’an Studies',
+  islamic_studies: 'Islamic Studies',
+  madrasa_education: 'Madrasa Education',
+  tarbiyah: 'Tarbiyah & Character Building',
+  womens_education: 'Women’s Islamic Education',
+  short_courses: 'Short Courses',
+  ramadan_daurah: 'Ramadan Daurah for Huffaz',
+  khatmul_quran: 'Khatmul Qur’an',
+  hifz: 'Qur’an Studies (Hifz)',
+  nazira: 'Qur’an Studies (Nazira)',
+  fiqh: 'Islamic Studies (Fiqh)',
+  madrasa: 'Madrasa Education',
+};
+
+export const formatTeacherSubject = (id?: string) => {
+  if (!id) return '-';
+  return TEACHER_SUBJECT_LABELS[id] || id.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+};
 
 const COURSE_LABELS: Record<string, string> = {
   quran_studies: 'Qur’an Studies (ഖുർആൻ പഠനം)',
@@ -163,6 +194,10 @@ export const AdminDashboardPlaceholder: React.FC = () => {
   // Teacher save
   const handleSaveTeacher = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!teacherForm.subjects || teacherForm.subjects.length === 0) {
+      setError('Please select at least one subject for the teacher.');
+      return;
+    }
     try {
       setError(null);
       await adminService.saveTeacher(teacherForm, !!editingTeacher);
@@ -593,17 +628,42 @@ export const AdminDashboardPlaceholder: React.FC = () => {
                       <p className="text-xs text-[#5E6D84] dark:text-[#9EADC4]">{t.email}</p>
                     </div>
 
-                    <div className="text-xs space-y-1 text-[#41536E] dark:text-[#C5D2E5]">
+                    <div className="text-xs space-y-2 text-[#41536E] dark:text-[#C5D2E5]">
                       <div><strong>WhatsApp:</strong> {t.whatsapp || 'N/A'}</div>
                       <div><strong>Qualification:</strong> {t.qualification || 'N/A'}</div>
-                      <div><strong>Subjects:</strong> {t.subjects?.join(', ').toUpperCase()}</div>
+                      <div>
+                        <strong className="block mb-1.5 text-[11px] font-semibold text-[#5E6D84] dark:text-[#9EADC4] uppercase tracking-wider">
+                          Subjects:
+                        </strong>
+                        <div className="flex flex-wrap gap-1.5">
+                          {Array.isArray(t.subjects) && t.subjects.length > 0 ? (
+                            t.subjects.map((sub) => (
+                              <span
+                                key={sub}
+                                className="inline-block px-2 py-0.5 rounded text-[11px] font-medium bg-[#F3EFE6] dark:bg-[#15233D] text-[#071A3D] dark:text-[#D4BC82] border border-[#E8E2D5] dark:border-[#1F3354]"
+                              >
+                                {formatTeacherSubject(sub)}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="text-gray-400 italic">None assigned</span>
+                          )}
+                        </div>
+                      </div>
                     </div>
 
                     <div className="pt-3 border-t border-[#E8E2D5] dark:border-[#1F3354] flex justify-end">
                       <button
                         onClick={() => {
                           setEditingTeacher(t);
-                          setTeacherForm(t);
+                          setTeacherForm({
+                            ...t,
+                            subjects: Array.isArray(t.subjects)
+                              ? [...t.subjects]
+                              : (typeof t.subjects === 'string'
+                                  ? JSON.parse(t.subjects || '[]')
+                                  : ['quran_studies']),
+                          });
                           setTeacherModalOpen(true);
                         }}
                         className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold bg-white dark:bg-[#060D1A] border border-[#E8E2D5] dark:border-[#1F3354] rounded hover:border-[#C5A869] transition-colors cursor-pointer"
@@ -866,6 +926,58 @@ export const AdminDashboardPlaceholder: React.FC = () => {
                     onChange={(e) => setTeacherForm({ ...teacherForm, qualification: e.target.value })}
                     className="w-full px-3 py-2.5 border rounded dark:bg-[#060D1A] dark:border-[#1F3354] dark:text-white"
                   />
+                </div>
+
+                {/* Subjects Multi-Select Checkboxes */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block font-semibold text-xs text-[#071A3D] dark:text-[#F3EFE6]">
+                      Subjects <span className="font-normal text-gray-500 dark:text-gray-400">(Select all that apply)</span>
+                    </label>
+                    <span className="text-[11px] text-[#8A7038] dark:text-[#D4BC82] font-medium">
+                      {Array.isArray(teacherForm.subjects) ? teacherForm.subjects.length : 0} selected
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-3 bg-gray-50 dark:bg-[#060D1A] border border-[#E8E2D5] dark:border-[#1F3354] rounded-lg max-h-56 overflow-y-auto">
+                    {TEACHER_SUBJECT_OPTIONS.map((subj) => {
+                      const isChecked = Array.isArray(teacherForm.subjects) && teacherForm.subjects.includes(subj.id);
+                      return (
+                        <label
+                          key={subj.id}
+                          className={`flex items-center gap-2.5 p-2 rounded cursor-pointer transition-colors text-xs select-none ${
+                            isChecked
+                              ? 'bg-[#C5A869]/15 dark:bg-[#C5A869]/25 font-semibold text-[#071A3D] dark:text-[#F3EFE6]'
+                              : 'hover:bg-gray-100 dark:hover:bg-[#15233D] text-gray-700 dark:text-gray-300'
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={(e) => {
+                              const current = Array.isArray(teacherForm.subjects) ? [...teacherForm.subjects] : [];
+                              if (e.target.checked) {
+                                if (!current.includes(subj.id)) {
+                                  setTeacherForm({ ...teacherForm, subjects: [...current, subj.id] });
+                                }
+                              } else {
+                                setTeacherForm({
+                                  ...teacherForm,
+                                  subjects: current.filter((s) => s !== subj.id),
+                                });
+                              }
+                            }}
+                            className="w-4 h-4 rounded border-gray-300 text-[#071A3D] dark:text-[#C5A869] focus:ring-[#C5A869] cursor-pointer"
+                          />
+                          <span>{subj.label}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                  {(!teacherForm.subjects || teacherForm.subjects.length === 0) && (
+                    <p className="text-[11px] text-amber-600 dark:text-amber-400 mt-1">
+                      Please select at least one subject.
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className="block font-semibold mb-1">Status</label>

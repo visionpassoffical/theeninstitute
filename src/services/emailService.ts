@@ -116,6 +116,61 @@ This is an automated attendance dispatch from THEEN Institute Faculty Portal.`;
   },
 
   /**
+   * Send new student admission notification to official THEEN administration email: theeninstitute@gmail.com
+   */
+  sendAdmissionNotification: async (
+    applicationData: any
+  ): Promise<EmailReportResult> => {
+    const recipient = 'theeninstitute@gmail.com';
+    const subject = `New Student Admission — ${applicationData.applicationId} (${applicationData.fullName})`;
+    const logId = `LOG-APP-${Date.now()}`;
+
+    try {
+      const response = await fetch('/api/send-admission-notification', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(applicationData),
+      });
+
+      if (response.ok) {
+        await emailService.logEmailDispatch({
+          logId,
+          recipient,
+          subject,
+          status: 'SENT',
+        });
+
+        return {
+          sent: true,
+          message: `Admission notification sent to ${recipient}`,
+          recipient,
+        };
+      } else {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.message || `Server status ${response.status}`);
+      }
+    } catch (err: any) {
+      console.warn('Admission email dispatch notice:', err?.message || err);
+
+      await emailService.logEmailDispatch({
+        logId,
+        recipient,
+        subject,
+        status: 'FAILED',
+      });
+
+      return {
+        sent: false,
+        message: 'Admission was saved, but email notification could not be sent.',
+        recipient,
+        error: err?.message,
+      };
+    }
+  },
+
+  /**
    * Log email dispatch directly to Supabase public.email_logs table
    */
   logEmailDispatch: async (log: {

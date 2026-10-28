@@ -128,20 +128,42 @@ export const adminService = {
       if (error) throw error;
       if (!data) return [];
 
-      return data.map((row: any) => ({
-        teacherId: row.teacher_id,
-        name: row.name,
-        gender: row.gender || 'male',
-        email: row.email,
-        whatsapp: row.whatsapp || '',
-        subjects: row.subjects || ['quran_studies'],
-        languages: row.languages || ['ml'],
-        qualification: row.qualification || '',
-        institution: row.institution || '',
-        experience: '3+ Years',
-        bio: row.bio || '',
-        status: row.status || 'ACTIVE',
-      }));
+      return data.map((row: any) => {
+        let parsedSubjects: any[] = [];
+        if (Array.isArray(row.subjects)) {
+          parsedSubjects = row.subjects;
+        } else if (typeof row.subjects === 'string') {
+          try {
+            parsedSubjects = JSON.parse(row.subjects);
+          } catch {
+            // Handle PostgreSQL text array format e.g. {"quran_studies","islamic_studies"}
+            parsedSubjects = row.subjects
+              .replace(/[{}"']/g, '')
+              .split(',')
+              .map((s: string) => s.trim())
+              .filter(Boolean);
+          }
+        }
+
+        if (!Array.isArray(parsedSubjects) || parsedSubjects.length === 0) {
+          parsedSubjects = ['quran_studies'];
+        }
+
+        return {
+          teacherId: row.teacher_id,
+          name: row.name,
+          gender: row.gender || 'male',
+          email: row.email,
+          whatsapp: row.whatsapp || '',
+          subjects: parsedSubjects,
+          languages: Array.isArray(row.languages) ? row.languages : ['ml'],
+          qualification: row.qualification || '',
+          institution: row.institution || '',
+          experience: row.experience || '3+ Years',
+          bio: row.bio || '',
+          status: row.status || 'ACTIVE',
+        };
+      });
     } catch (err) {
       console.warn('Teachers fetch notice:', err);
       return [];
@@ -149,18 +171,18 @@ export const adminService = {
   },
 
   saveTeacher: async (teacher: TeacherProfileData, isEdit: boolean): Promise<void> => {
-    const payload = {
-      teacher_id: teacher.teacherId,
-      name: teacher.name,
+    const payload: Record<string, any> = {
+      name: teacher.name.trim(),
       gender: teacher.gender,
-      email: teacher.email,
-      whatsapp: teacher.whatsapp,
-      subjects: teacher.subjects,
-      languages: teacher.languages,
-      qualification: teacher.qualification,
-      institution: teacher.institution,
-      bio: teacher.bio,
-      status: teacher.status,
+      email: teacher.email.trim(),
+      whatsapp: teacher.whatsapp?.trim() || '',
+      subjects: Array.isArray(teacher.subjects) ? teacher.subjects : [],
+      languages: Array.isArray(teacher.languages) ? teacher.languages : ['ml'],
+      qualification: teacher.qualification?.trim() || '',
+      institution: teacher.institution?.trim() || '',
+      bio: teacher.bio?.trim() || '',
+      status: teacher.status || 'ACTIVE',
+      updated_at: new Date().toISOString(),
     };
 
     if (isEdit) {
@@ -170,6 +192,7 @@ export const adminService = {
         .eq('teacher_id', teacher.teacherId);
       if (error) throw error;
     } else {
+      payload.teacher_id = teacher.teacherId.trim();
       const { error } = await supabase
         .from('teachers')
         .insert(payload);
