@@ -1,5 +1,6 @@
 import { TeacherApplication } from '../types';
 import { supabase, isSupabaseConfigured, supabaseConfigError } from '../lib/supabase';
+import { emailService } from './emailService';
 
 export const teacherService = {
   /**
@@ -51,12 +52,19 @@ export const teacherService = {
       throw new Error(error.message || 'Failed to submit teacher application to Supabase.');
     }
 
-    return {
+    const newApplication: TeacherApplication = {
       ...data,
       applicationId,
       status: 'PENDING',
       submittedAt,
     };
+
+    // Trigger email notification to theeninstitute@gmail.com asynchronously
+    emailService.sendTeacherApplicationNotification(newApplication).catch((emailErr) => {
+      console.warn('Background teacher application email notification warning:', emailErr);
+    });
+
+    return newApplication;
   },
 
   /**

@@ -171,8 +171,59 @@ This is an automated attendance dispatch from THEEN Institute Faculty Portal.`;
   },
 
   /**
-   * Log email dispatch directly to Supabase public.email_logs table
+   * Send new teacher application notification to official THEEN administration email: theeninstitute@gmail.com
    */
+  sendTeacherApplicationNotification: async (
+    applicationData: any
+  ): Promise<EmailReportResult> => {
+    const recipient = 'theeninstitute@gmail.com';
+    const subject = `New Teacher Application — ${applicationData.applicationId} (${applicationData.fullName})`;
+    const logId = `LOG-TAPP-${Date.now()}`;
+
+    try {
+      const response = await fetch('/api/send-teacher-application-notification', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(applicationData),
+      });
+
+      if (response.ok) {
+        await emailService.logEmailDispatch({
+          logId,
+          recipient,
+          subject,
+          status: 'SENT',
+        });
+
+        return {
+          sent: true,
+          message: `Teacher application notification sent to ${recipient}`,
+          recipient,
+        };
+      } else {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.message || `Server status ${response.status}`);
+      }
+    } catch (err: any) {
+      console.warn('Teacher application email dispatch notice:', err?.message || err);
+
+      await emailService.logEmailDispatch({
+        logId,
+        recipient,
+        subject,
+        status: 'FAILED',
+      });
+
+      return {
+        sent: false,
+        message: 'Teacher application was saved, but email notification could not be sent.',
+        recipient,
+        error: err?.message,
+      };
+    }
+  },
   logEmailDispatch: async (log: {
     logId: string;
     recipient: string;
