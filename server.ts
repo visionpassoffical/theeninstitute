@@ -36,6 +36,16 @@ app.post('/api/send-attendance-report', async (req, res) => {
       });
     }
 
+    const resendFromEmail = process.env.RESEND_FROM_EMAIL;
+
+    if (!resendFromEmail) {
+      console.warn('RESEND_FROM_EMAIL is not configured in server environment variables.');
+      return res.status(500).json({
+        success: false,
+        message: 'Server configuration error: RESEND_FROM_EMAIL is missing.',
+      });
+    }
+
     const subject = data.subject || `THEEN Attendance Report — ${data.date} (${data.teacherId})`;
     const htmlBody = `
       <div style="font-family: Arial, sans-serif; padding: 20px; color: #071A3D; background-color: #FBF9F5; border-radius: 8px;">
@@ -57,7 +67,7 @@ app.post('/api/send-attendance-report', async (req, res) => {
         'Authorization': `Bearer ${resendApiKey}`,
       },
       body: JSON.stringify({
-        from: 'THEEN Institute <onboarding@resend.dev>',
+        from: resendFromEmail,
         to: [adminEmail],
         subject: subject,
         html: htmlBody,
@@ -177,12 +187,13 @@ app.post('/api/send-teacher-application-notification', async (req, res) => {
     const data = req.body || {};
     const adminEmail = process.env.THEEN_ADMIN_EMAIL || 'theeninstitute@gmail.com';
     const resendApiKey = process.env.RESEND_API_KEY || process.env.THEEN_RESEND_API_KEY;
+    const resendFromEmail = process.env.RESEND_FROM_EMAIL || 'THEEN Institute <onboarding@resend.dev>';
 
     if (!resendApiKey) {
-      console.warn('RESEND_API_KEY is not configured in environment variables on the server.');
+      console.warn('RESEND_API_KEY is not configured in server environment variables.');
       return res.status(500).json({
         success: false,
-        message: 'Resend API key is not configured on the server.',
+        message: 'Server configuration error: RESEND_API_KEY is missing.',
       });
     }
 
@@ -215,7 +226,7 @@ app.post('/api/send-teacher-application-notification', async (req, res) => {
         'Authorization': `Bearer ${resendApiKey}`,
       },
       body: JSON.stringify({
-        from: 'THEEN Institute <onboarding@resend.dev>',
+        from: resendFromEmail,
         to: [adminEmail],
         subject: subject,
         html: htmlBody,

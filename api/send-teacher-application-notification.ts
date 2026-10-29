@@ -9,12 +9,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const data = req.body || {};
     const adminEmail = process.env.THEEN_ADMIN_EMAIL || 'theeninstitute@gmail.com';
     const resendApiKey = process.env.RESEND_API_KEY || process.env.THEEN_RESEND_API_KEY;
+    const resendFromEmail = process.env.RESEND_FROM_EMAIL || 'THEEN Institute <onboarding@resend.dev>';
 
     if (!resendApiKey) {
-      console.warn('RESEND_API_KEY is not configured in environment variables.');
+      console.warn('RESEND_API_KEY is not configured in server environment variables.');
       return res.status(500).json({
         success: false,
-        message: 'Resend API key is not configured on the server.',
+        message: 'Server configuration error: RESEND_API_KEY is missing.',
       });
     }
 
@@ -47,7 +48,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         'Authorization': `Bearer ${resendApiKey}`,
       },
       body: JSON.stringify({
-        from: 'THEEN Institute <onboarding@resend.dev>',
+        from: resendFromEmail,
         to: [adminEmail],
         subject: subject,
         html: htmlBody,
